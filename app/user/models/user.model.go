@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgconn"
+	"github.com/kaungmyathan22/golang-invoice-app/app/common"
 	"gorm.io/gorm"
 )
 
@@ -24,24 +25,33 @@ type UserModel struct {
 	LastPasswordUpdatedAt time.Time      `gorm:"column:lastPasswordUpdatedAt"`
 }
 
-type UserStorage struct {
+type UserStorage interface {
+	GetAll(payload common.PaginationParamsRequest) ([]UserModel, error)
+	GetById(id uint) (*UserModel, error)
+	Create(user UserModel) (*UserModel, error)
+	Update(user UserModel) error
+	Delete(id int) error
+}
+
+type UserStorageImpl struct {
 	db *gorm.DB
 }
 
-func NewUserStorage(db *gorm.DB) *UserStorage {
-	return &UserStorage{db: db}
+func NewUserStorage(db *gorm.DB) *UserStorageImpl {
+	return &UserStorageImpl{db: db}
 }
 
-func (storage *UserStorage) GetAll() ([]UserModel, error) {
+func (storage *UserStorageImpl) GetAll(payload common.PaginationParamsRequest) ([]UserModel, error) {
 	var users []UserModel
-	result := storage.db.Find(&users)
+	offset := (payload.Page - 1) * payload.PageSize
+	result := storage.db.Offset(offset).Limit(payload.PageSize).Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return users, nil
 }
 
-func (storage *UserStorage) GetById(id uint) (*UserModel, error) {
+func (storage *UserStorageImpl) GetById(id uint) (*UserModel, error) {
 	var user *UserModel
 	result := storage.db.First(&user, id)
 	if result.Error != nil {
@@ -53,24 +63,24 @@ func (storage *UserStorage) GetById(id uint) (*UserModel, error) {
 	return user, nil
 }
 
-func (s UserStorage) Create(user UserModel) (error, *UserModel) {
-	result := s.db.Create(&user)
+func (storage *UserStorageImpl) Create(user UserModel) (*UserModel, error) {
+	result := storage.db.Create(&user)
 	if err := result.Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return ErrEmailAlreadyExists, nil
+			return nil, ErrEmailAlreadyExists
 		}
-		return err, nil
+		return nil, err
 	}
-	return nil, &user
+	return &user, nil
 }
 
-func (s UserStorage) Update(user UserModel) error {
-	result := s.db.Save(user)
+func (storage *UserStorageImpl) Update(user UserModel) error {
+	result := storage.db.Save(user)
 	return result.Error
 }
 
-func (s UserStorage) Delete(id int) error {
-	result := s.db.Delete(&UserModel{}, id)
+func (storage *UserStorageImpl) Delete(id int) error {
+	result := storage.db.Delete(&UserModel{}, id)
 	return result.Error
 }
