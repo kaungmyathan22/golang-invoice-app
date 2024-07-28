@@ -3,15 +3,27 @@ package main
 import (
 	"log"
 	"net/http"
+	"regexp"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
+	"github.com/kaungmyathan22/golang-invoice-app/app/middlewares"
+	user_dto "github.com/kaungmyathan22/golang-invoice-app/app/user/dtos"
+	user_handlers "github.com/kaungmyathan22/golang-invoice-app/app/user/handlers"
 	user_models "github.com/kaungmyathan22/golang-invoice-app/app/user/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+func sixToEightDigitAlphanumericPasswordValidator(password string) bool {
+	re := regexp.MustCompile(`^[a-zA-Z0-9]{6,8}$`)
+	return re.MatchString(password)
+}
+
 func main() {
-	// config.InitApp()
+	govalidator.SetFieldsRequiredByDefault(true)
+	govalidator.TagMap["sixToEightDigitAlphanumericPasswordValidator"] = govalidator.Validator(sixToEightDigitAlphanumericPasswordValidator)
+
 	dsn := "host=localhost user=admin password=admin dbname=invoice_app port=5433 sslmode=disable"
 	// docker exec -it postgres psql -U admin -d postgres
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -23,10 +35,11 @@ func main() {
 
 	r := gin.Default()
 	v1Route := r.Group("/api/v1")
+	/** user region */
+	userStorage := user_models.NewUserStorage(db)
+	userHandler := user_handlers.NewUserHandler(userStorage)
 	userRoutes := v1Route.Group("/users")
-	userRoutes.POST("/", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{"message": "Hola"})
-	})
+	userRoutes.POST("/", middlewares.ValidationMiddleware(&user_dto.RegisterUserDTO{}), userHandler.CreateUserHandler)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
