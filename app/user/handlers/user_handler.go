@@ -6,10 +6,10 @@ import (
 )
 
 type UserHandler struct {
-	Storage *user_models.UserStorage
+	Storage user_models.UserStorage
 }
 
-func NewUserHandler(db *user_models.UserStorage) *UserHandler {
+func NewUserHandler(db user_models.UserStorage) *UserHandler {
 	return &UserHandler{Storage: db}
 }
 
@@ -19,8 +19,9 @@ func (handler *UserHandler) GetUsersHandler(ctx *gin.Context) {
 func (handler *UserHandler) GetUserHandler(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "GetUserHandler"})
 }
-func (handler *UserHandler) CreateUserHandler(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"message": "CreateUserHandler"})
+func (handler *UserHandler) CreateUserHandler(c *gin.Context) {
+
+	c.JSON(200, gin.H{"message": "Register Successful"})
 }
 func (handler *UserHandler) UpdateUserHandler(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "UpdateUserHandler"})
