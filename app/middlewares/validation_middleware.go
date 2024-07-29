@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
@@ -16,12 +15,12 @@ func ValidationMiddleware(payload interface{}) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		_, err := govalidator.ValidateStruct(payload)
-		if err != nil {
+		isValid, err := govalidator.ValidateStruct(payload)
+		if err != nil || !isValid {
 			c.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse(err.Error()))
 			c.Abort()
 		}
-		fmt.Println("Going next")
+		c.Set("payload", payload)
 		c.Next()
 	}
 }
