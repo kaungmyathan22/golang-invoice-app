@@ -4,14 +4,13 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jackc/pgconn"
 	"github.com/kaungmyathan22/golang-invoice-app/app/common"
 	"gorm.io/gorm"
 )
 
 var (
-	ErrUserNotFound       = errors.New("user not found")
-	ErrEmailAlreadyExists = errors.New("email already exists")
+	ErrUserNotFound          = errors.New("user not found")
+	ErrUsernameAlreadyExists = errors.New("username already exists")
 )
 
 type UserModel struct {
@@ -19,7 +18,7 @@ type UserModel struct {
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 	DeletedAt             gorm.DeletedAt `gorm:"index"`
-	UserName              string         `gorm:"column:username"`
+	Username              string         `gorm:"column:username;unique"`
 	Password              string         `gorm:"column:password"`
 	LastLoggedInAt        time.Time      `gorm:"column:lastLoggedInAt"`
 	LastPasswordUpdatedAt time.Time      `gorm:"column:lastPasswordUpdatedAt"`
@@ -66,10 +65,6 @@ func (storage *UserStorageImpl) GetById(id uint) (*UserModel, error) {
 func (storage *UserStorageImpl) Create(user UserModel) (*UserModel, error) {
 	result := storage.db.Create(&user)
 	if err := result.Error; err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return nil, ErrEmailAlreadyExists
-		}
 		return nil, err
 	}
 	return &user, nil
