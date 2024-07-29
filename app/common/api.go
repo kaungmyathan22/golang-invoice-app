@@ -59,3 +59,19 @@ func GetForbiddenResponse(data any) *APIResponse {
 		Data:    data,
 	}
 }
+
+func GetInternalServerErrorResponse(data any) *APIResponse {
+	return &APIResponse{
+		Status:  http.StatusInternalServerError,
+		Message: "error",
+		Data:    data,
+	}
+}
+
+func GetStatusConflictResponse(data any) *APIResponse {
+	return &APIResponse{
+		Status:  http.StatusConflict,
+		Message: "error",
+		Data:    data,
+	}
+}
