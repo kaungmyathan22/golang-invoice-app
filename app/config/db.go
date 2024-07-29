@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 
-	user_models "github.com/kaungmyathan22/golang-invoice-app/app/user/models"
+	"github.com/kaungmyathan22/golang-invoice-app/app/user"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -16,7 +16,7 @@ func InitDB() (*gorm.DB, error) {
 		return nil, err
 	}
 	log.Println("successfully connected to database.")
-	db.AutoMigrate(&user_models.UserModel{})
+	db.AutoMigrate(&user.UserModel{})
 
 	return db, nil
 }

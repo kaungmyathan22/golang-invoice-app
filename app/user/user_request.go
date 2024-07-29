@@ -1,8 +1,7 @@
-package user_dto
+package user
 
 import (
 	"github.com/kaungmyathan22/golang-invoice-app/app/lib"
-	user_models "github.com/kaungmyathan22/golang-invoice-app/app/user/models"
 )
 
 type RegisterUserDTO struct {
@@ -14,10 +13,10 @@ type LoginUserDTO struct {
 	RegisterUserDTO
 }
 
-func (dto *RegisterUserDTO) ToModel() (*user_models.UserModel, error) {
+func (dto *RegisterUserDTO) ToModel() (*UserModel, error) {
 	hashedPassword, err := lib.HashPassword(dto.Password)
 	if err != nil {
 		return nil, err
 	}
-	return &user_models.UserModel{Password: hashedPassword, Username: dto.Username}, nil
+	return &UserModel{Password: hashedPassword, Username: dto.Username}, nil
 }

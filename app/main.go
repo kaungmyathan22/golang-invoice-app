@@ -8,9 +8,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	"github.com/kaungmyathan22/golang-invoice-app/app/middlewares"
-	user_dto "github.com/kaungmyathan22/golang-invoice-app/app/user/dtos"
-	user_handlers "github.com/kaungmyathan22/golang-invoice-app/app/user/handlers"
-	user_models "github.com/kaungmyathan22/golang-invoice-app/app/user/models"
+	"github.com/kaungmyathan22/golang-invoice-app/app/user"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -31,15 +29,15 @@ func main() {
 		panic(err)
 	}
 	log.Println("successfully connected to database.")
-	db.AutoMigrate(&user_models.UserModel{})
+	db.AutoMigrate(&user.UserModel{})
 
 	r := gin.Default()
 	v1Route := r.Group("/api/v1")
 	/** user region */
-	userStorage := user_models.NewUserStorage(db)
-	userHandler := user_handlers.NewUserHandler(userStorage)
+	userStorage := user.NewUserStorage(db)
+	userHandler := user.NewUserHandler(userStorage)
 	userRoutes := v1Route.Group("/users")
-	userRoutes.POST("/", middlewares.ValidationMiddleware(&user_dto.RegisterUserDTO{}), userHandler.CreateUserHandler)
+	userRoutes.POST("/", middlewares.ValidationMiddleware(&user.RegisterUserDTO{}), userHandler.CreateUserHandler)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",

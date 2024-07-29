@@ -1,4 +1,4 @@
-package user_models
+package user
 
 import (
 	"errors"
