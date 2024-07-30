@@ -10,6 +10,7 @@ import (
 type UserStorage interface {
 	GetAll(payload common.PaginationParamsRequest) ([]UserModel, error)
 	GetById(id uint) (*UserModel, error)
+	GetByUsername(username string) (*UserModel, error)
 	Create(user UserModel) (*UserModel, error)
 	Update(user UserModel) error
 	Delete(id int) error
@@ -36,6 +37,18 @@ func (storage *UserStorageImpl) GetAll(payload common.PaginationParamsRequest) (
 func (storage *UserStorageImpl) GetById(id uint) (*UserModel, error) {
 	var user *UserModel
 	result := storage.db.First(&user, id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, result.Error
+	}
+	return user, nil
+}
+
+func (storage *UserStorageImpl) GetByUsername(username string) (*UserModel, error) {
+	var user *UserModel
+	result := storage.db.Where("username = ?", username).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
