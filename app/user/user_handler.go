@@ -1,11 +1,13 @@
 package user
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kaungmyathan22/golang-invoice-app/app/common"
+	"github.com/kaungmyathan22/golang-invoice-app/app/lib"
 )
 
 type UserHandler struct {
@@ -19,9 +21,41 @@ func NewUserHandler(db UserStorage) *UserHandler {
 func (handler *UserHandler) GetUsersHandler(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "GetUsersHandler"})
 }
+
+func (handler *UserHandler) LoginHandler(ctx *gin.Context) {
+	rawPayload, exists := ctx.Get("payload")
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("payload do not exists"))
+	}
+	payload, ok := rawPayload.(*LoginUserDTO)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("invalid payload type"))
+		return
+	}
+	user, err := handler.Storage.GetByUsername(payload.Username)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			ctx.JSON(http.StatusNotFound, common.GetStatusBadRequestResponse("Invalid username / password"))
+			return
+		}
+	}
+	if !lib.CheckPasswordHash(payload.Password, user.Password) {
+		ctx.JSON(http.StatusNotFound, common.GetStatusBadRequestResponse("Invalid username / password"))
+		return
+	}
+	token, err := lib.GenerateToken(user.ID)
+	if err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusNotFound, common.GetInternalServerErrorResponse("Something went wrong."))
+		return
+	}
+	ctx.JSON(200, common.GetSuccessResponse(UserLoginResponse{User: *UserEntityFromUserModel(user), Token: token}))
+}
+
 func (handler *UserHandler) GetUserHandler(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "GetUserHandler"})
 }
+
 func (handler *UserHandler) CreateUserHandler(c *gin.Context) {
 	rawPayload, exists := c.Get("payload")
 	if !exists {
@@ -50,9 +84,11 @@ func (handler *UserHandler) CreateUserHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusAccepted, common.GetSuccessResponse(FromModel(user)))
 }
+
 func (handler *UserHandler) UpdateUserHandler(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "UpdateUserHandler"})
 }
+
 func (handler *UserHandler) DeleteUserHandler(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "DeleteUserHandler"})
 }
