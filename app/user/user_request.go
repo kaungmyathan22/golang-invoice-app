@@ -10,7 +10,8 @@ type RegisterUserDTO struct {
 }
 
 type LoginUserDTO struct {
-	RegisterUserDTO
+	Username string `json:"username" binding:"required" valid:"required~Username is required"`
+	Password string `json:"password" binding:"required" valid:"sixToEightDigitAlphanumericPasswordValidator~Password must be between 6 to 8 alphanumeric characters"`
 }
 
 func (dto *RegisterUserDTO) ToModel() (*UserModel, error) {
