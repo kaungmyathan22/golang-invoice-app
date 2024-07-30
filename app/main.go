@@ -36,8 +36,9 @@ func main() {
 	/** user region */
 	userStorage := user.NewUserStorage(db)
 	userHandler := user.NewUserHandler(userStorage)
-	userRoutes := v1Route.Group("/users")
-	userRoutes.POST("/", middlewares.ValidationMiddleware(&user.RegisterUserDTO{}), userHandler.CreateUserHandler)
+	userRoutes := v1Route.Group("/auth")
+	userRoutes.POST("/register", middlewares.ValidationMiddleware(&user.RegisterUserDTO{}), userHandler.CreateUserHandler)
+	userRoutes.POST("/login", middlewares.ValidationMiddleware(&user.LoginUserDTO{}), userHandler.LoginHandler)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
