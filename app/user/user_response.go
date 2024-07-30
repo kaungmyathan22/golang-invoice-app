@@ -9,3 +9,8 @@ func FromModel(model *UserModel) *UserRegisterResponse {
 		Username: model.Username,
 	}
 }
+
+type UserLoginResponse struct {
+	Token string     `json:"token"`
+	User  UserEntity `json:"user"`
+}
