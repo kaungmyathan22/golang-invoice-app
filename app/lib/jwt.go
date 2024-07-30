@@ -12,20 +12,20 @@ var (
 )
 
 type CustomClaims struct {
-	UserID string `json:"user_id"`
+	UserID uint `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(secret, userID string, duration time.Duration) (string, error) {
+func GenerateToken(userID uint) (string, error) {
 	claims := &CustomClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+	return token.SignedString([]byte("Something secret"))
 }
 
 func VerifyToken(secret, tokenStr string) (*CustomClaims, error) {
