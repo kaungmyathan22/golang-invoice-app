@@ -9,6 +9,7 @@ import (
 
 var (
 	ErrInvalidToken = errors.New("invalid token")
+	JWT_SECRET      = "Something secret"
 )
 
 type CustomClaims struct {
@@ -25,15 +26,15 @@ func GenerateToken(userID uint) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte("Something secret"))
+	return token.SignedString([]byte(JWT_SECRET))
 }
 
-func VerifyToken(secret, tokenStr string) (*CustomClaims, error) {
+func VerifyToken(tokenStr string) (*CustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrInvalidToken
 		}
-		return []byte(secret), nil
+		return []byte(JWT_SECRET), nil
 	})
 
 	if err != nil {
