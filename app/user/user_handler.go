@@ -53,21 +53,12 @@ func (handler *UserHandler) LoginHandler(ctx *gin.Context) {
 }
 
 func (handler *UserHandler) MeHandler(ctx *gin.Context) {
-	userId, exists := ctx.Get("userId")
+	userModel, exists := ctx.Get("user")
 	if !exists {
 		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong"))
 		return
 	}
-	user, err := handler.Storage.GetById(userId.(uint))
-	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
-			ctx.JSON(http.StatusUnauthorized, common.GetUnauthorizedResponse("user with given id not found."))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong"))
-		return
-	}
-	ctx.JSON(http.StatusOK, common.GetSuccessResponse(UserEntityFromUserModel(user)))
+	ctx.JSON(http.StatusOK, common.GetSuccessResponse(UserEntityFromUserModel(userModel.(*UserModel))))
 }
 
 func (handler *UserHandler) CreateUserHandler(c *gin.Context) {
@@ -100,6 +91,10 @@ func (handler *UserHandler) CreateUserHandler(c *gin.Context) {
 }
 
 func (handler *UserHandler) UpdateUserHandler(ctx *gin.Context) {
+	ctx.JSON(200, gin.H{"message": "UpdateUserHandler"})
+}
+
+func (handler *UserHandler) ChangePasswordHandler(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "UpdateUserHandler"})
 }
 
