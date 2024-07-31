@@ -39,7 +39,7 @@ func main() {
 	userRoutes := v1Route.Group("/auth")
 	userRoutes.POST("/register", middlewares.ValidationMiddleware(&user.RegisterUserDTO{}), userHandler.CreateUserHandler)
 	userRoutes.POST("/login", middlewares.ValidationMiddleware(&user.LoginUserDTO{}), userHandler.LoginHandler)
-	userRoutes.GET("/me", middlewares.AuthMiddleware(), userHandler.MeHandler)
+	userRoutes.GET("/me", middlewares.AuthMiddleware(userStorage), userHandler.MeHandler)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong!",
