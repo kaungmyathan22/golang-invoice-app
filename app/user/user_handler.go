@@ -95,7 +95,45 @@ func (handler *UserHandler) UpdateUserHandler(ctx *gin.Context) {
 }
 
 func (handler *UserHandler) ChangePasswordHandler(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"message": "UpdateUserHandler"})
+	rawPayload, exists := ctx.Get("payload")
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("payload do not exists"))
+	}
+	payload, ok := rawPayload.(*ChangePasswordDTO)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("invalid payload type"))
+		return
+	}
+	if payload.OldPassword == payload.NewPassword {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("newPassword can't be the same with oldPassword"))
+		return
+	}
+	rawUser, exists := ctx.Get("user")
+	if !exists {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong"))
+		return
+	}
+	userModel, ok := rawUser.(*UserModel)
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong"))
+		return
+	}
+	if !lib.CheckPasswordHash(payload.OldPassword, userModel.Password) {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("incorrect old password"))
+		return
+	}
+	err := payload.HashPassword()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong while hashing password"))
+		return
+	}
+	userModel.Password = payload.NewPassword
+	err = handler.Storage.Update(*userModel)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong while changing password"))
+		return
+	}
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, "successfully changed password"))
 }
 
 func (handler *UserHandler) DeleteUserHandler(ctx *gin.Context) {

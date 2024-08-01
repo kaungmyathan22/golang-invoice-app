@@ -10,8 +10,16 @@ type APIResponse struct {
 
 func GetStatusAcceptedResponse(data any) *APIResponse {
 	return &APIResponse{
-		Message: "success",
+		Message: http.StatusText(http.StatusOK),
 		Status:  http.StatusOK,
+		Data:    data,
+	}
+}
+
+func GetEnvelope(status int, data any) *APIResponse {
+	return &APIResponse{
+		Message: http.StatusText(status),
+		Status:  status,
 		Data:    data,
 	}
 }

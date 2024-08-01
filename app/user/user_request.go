@@ -26,3 +26,12 @@ type ChangePasswordDTO struct {
 	OldPassword string `json:"oldPassword" binding:"required" valid:"sixToEightDigitAlphanumericPasswordValidator~Password must be between 6 to 8 alphanumeric characters"`
 	NewPassword string `json:"newPassword" binding:"required" valid:"sixToEightDigitAlphanumericPasswordValidator~Password must be between 6 to 8 alphanumeric characters"`
 }
+
+func (dto *ChangePasswordDTO) HashPassword() error {
+	hashedPassword, err := lib.HashPassword(dto.NewPassword)
+	if err != nil {
+		return err
+	}
+	dto.NewPassword = hashedPassword
+	return nil
+}
