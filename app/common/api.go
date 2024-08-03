@@ -26,7 +26,7 @@ func GetEnvelope(status int, data any) *APIResponse {
 
 func GetStatusBadRequestResponse(data any) *APIResponse {
 	return &APIResponse{
-		Message: "error",
+		Message: http.StatusText(http.StatusBadRequest),
 		Status:  http.StatusBadRequest,
 		Data: map[string]any{
 			"error": data,
@@ -36,7 +36,7 @@ func GetStatusBadRequestResponse(data any) *APIResponse {
 
 func GetUnauthorizedResponse(data any) *APIResponse {
 	return &APIResponse{
-		Message: "error",
+		Message: http.StatusText(http.StatusUnauthorized),
 		Status:  http.StatusUnauthorized,
 		Data: map[string]any{
 			"error": data,
@@ -47,7 +47,7 @@ func GetUnauthorizedResponse(data any) *APIResponse {
 func GetSuccessResponse(data any) *APIResponse {
 	return &APIResponse{
 		Status:  http.StatusOK,
-		Message: "success",
+		Message: http.StatusText(http.StatusOK),
 		Data:    data,
 	}
 }
@@ -55,7 +55,7 @@ func GetSuccessResponse(data any) *APIResponse {
 func GetNotFoundResponse(data any) *APIResponse {
 	return &APIResponse{
 		Status:  http.StatusNotFound,
-		Message: "error",
+		Message: http.StatusText(http.StatusNotFound),
 		Data:    data,
 	}
 }
@@ -63,7 +63,7 @@ func GetNotFoundResponse(data any) *APIResponse {
 func GetForbiddenResponse(data any) *APIResponse {
 	return &APIResponse{
 		Status:  http.StatusForbidden,
-		Message: "error",
+		Message: http.StatusText(http.StatusForbidden),
 		Data:    data,
 	}
 }
@@ -71,7 +71,7 @@ func GetForbiddenResponse(data any) *APIResponse {
 func GetInternalServerErrorResponse(data any) *APIResponse {
 	return &APIResponse{
 		Status:  http.StatusInternalServerError,
-		Message: "error",
+		Message: http.StatusText(http.StatusInternalServerError),
 		Data:    data,
 	}
 }
@@ -79,7 +79,7 @@ func GetInternalServerErrorResponse(data any) *APIResponse {
 func GetStatusConflictResponse(data any) *APIResponse {
 	return &APIResponse{
 		Status:  http.StatusConflict,
-		Message: "error",
+		Message: http.StatusText(http.StatusConflict),
 		Data:    data,
 	}
 }
