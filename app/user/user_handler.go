@@ -133,7 +133,7 @@ func (handler *UserHandler) ChangePasswordHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong while changing password"))
 		return
 	}
-	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, "successfully changed password"))
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, "Successfully changed password"))
 }
 
 func (handler *UserHandler) DeleteUserHandler(ctx *gin.Context) {
