@@ -3,12 +3,12 @@ package user
 import (
 	"errors"
 
-	"github.com/kaungmyathan22/golang-invoice-app/app/common"
 	"gorm.io/gorm"
 )
 
 type UserStorage interface {
-	GetAll(payload common.PaginationParamsRequest) ([]UserModel, error)
+	GetCount(condition interface{}) (int64, error)
+	GetAll(page, pageSize int) ([]UserModel, error)
 	GetById(id uint) (*UserModel, error)
 	GetByUsername(username string) (*UserModel, error)
 	Create(user UserModel) (*UserModel, error)
@@ -24,10 +24,23 @@ func NewUserStorage(db *gorm.DB) *UserStorageImpl {
 	return &UserStorageImpl{db: db}
 }
 
-func (storage *UserStorageImpl) GetAll(payload common.PaginationParamsRequest) ([]UserModel, error) {
+func (storage *UserStorageImpl) GetCount(condition interface{}) (int64, error) {
+	var totalRecords int64
+	query := storage.db.Model(&UserModel{})
+	if condition != nil {
+		query = query.Where(condition)
+	}
+	result := query.Count(&totalRecords)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return totalRecords, nil
+}
+
+func (storage *UserStorageImpl) GetAll(page, pageSize int) ([]UserModel, error) {
 	var users []UserModel
-	offset := (payload.Page - 1) * payload.PageSize
-	result := storage.db.Offset(offset).Limit(payload.PageSize).Find(&users)
+	offset := (page - 1) * pageSize
+	result := storage.db.Offset(offset).Limit(pageSize).Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}

@@ -52,22 +52,6 @@ func GetSuccessResponse(data any) *APIResponse {
 	}
 }
 
-func GetNotFoundResponse(data any) *APIResponse {
-	return &APIResponse{
-		Status:  http.StatusNotFound,
-		Message: http.StatusText(http.StatusNotFound),
-		Data:    data,
-	}
-}
-
-func GetForbiddenResponse(data any) *APIResponse {
-	return &APIResponse{
-		Status:  http.StatusForbidden,
-		Message: http.StatusText(http.StatusForbidden),
-		Data:    data,
-	}
-}
-
 func GetInternalServerErrorResponse(data any) *APIResponse {
 	return &APIResponse{
 		Status:  http.StatusInternalServerError,

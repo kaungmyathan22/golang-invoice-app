@@ -19,7 +19,33 @@ func NewUserHandler(db UserStorage) *UserHandler {
 }
 
 func (handler *UserHandler) GetUsersHandler(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"message": "GetUsersHandler"})
+	var pagination common.PaginationParamsRequest
+
+	if err := ctx.ShouldBindQuery(&pagination); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.GetEnvelope(http.StatusBadRequest, err.Error()))
+		return
+	}
+	pagination.SetDefaultPaginationValues()
+	users, err := handler.Storage.GetAll(pagination.Page, pagination.PageSize)
+	if err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, nil))
+		return
+	}
+	var userEntities []UserEntity
+	for _, model := range users {
+		userEntities = append(userEntities, *UserEntityFromUserModel(&model))
+	}
+	totalItems, err := handler.Storage.GetCount(nil)
+	if err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, nil))
+		return
+	}
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, gin.H{
+		"meta":  pagination.GetMeta(totalItems),
+		"users": userEntities,
+	}))
 }
 
 func (handler *UserHandler) LoginHandler(ctx *gin.Context) {
