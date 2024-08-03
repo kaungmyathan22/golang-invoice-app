@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -49,6 +50,7 @@ func AuthMiddleware(userStorage user.UserStorage) gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+		fmt.Println("Going next....")
 		ctx.Set("user", user_model)
 		ctx.Next()
 

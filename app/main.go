@@ -41,6 +41,7 @@ func main() {
 	userRoutes.POST("/login", middlewares.ValidationMiddleware(&user.LoginUserDTO{}), userHandler.LoginHandler)
 	userRoutes.GET("/me", middlewares.AuthMiddleware(userStorage), userHandler.MeHandler)
 	userRoutes.PATCH("/change-password", middlewares.AuthMiddleware(userStorage), middlewares.ValidationMiddleware(&user.ChangePasswordDTO{}), userHandler.ChangePasswordHandler)
+	userRoutes.PATCH("/profile", middlewares.AuthMiddleware(userStorage), middlewares.ValidationMiddleware(&user.UpdateUserDTO{}), userHandler.UpdateUserHandler)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong!",

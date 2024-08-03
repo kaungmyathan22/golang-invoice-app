@@ -11,13 +11,13 @@ import (
 func ValidationMiddleware(payload interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if err := c.ShouldBindJSON(payload); err != nil {
-			c.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("Invalid body payload please provide all required fields."))
+			c.JSON(http.StatusUnprocessableEntity, common.GetEnvelope(http.StatusUnprocessableEntity, "Invalid body payload please provide all required fields."))
 			c.Abort()
 			return
 		}
 		isValid, err := govalidator.ValidateStruct(payload)
 		if err != nil || !isValid {
-			c.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse(err.Error()))
+			c.JSON(http.StatusUnprocessableEntity, common.GetEnvelope(http.StatusUnprocessableEntity, err.Error()))
 			c.Abort()
 		}
 		c.Set("payload", payload)

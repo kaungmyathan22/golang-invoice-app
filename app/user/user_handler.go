@@ -91,7 +91,32 @@ func (handler *UserHandler) CreateUserHandler(c *gin.Context) {
 }
 
 func (handler *UserHandler) UpdateUserHandler(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"message": "UpdateUserHandler"})
+	rawPayload, exists := ctx.Get("payload")
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("payload do not exists"))
+	}
+	payload, ok := rawPayload.(*UpdateUserDTO)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("invalid payload type"))
+		return
+	}
+	rawUser, exists := ctx.Get("user")
+	if !exists {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong"))
+		return
+	}
+	userModel, ok := rawUser.(*UserModel)
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong"))
+		return
+	}
+	userModel.Username = payload.Username
+	err := handler.Storage.Update(*userModel)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong while changing username"))
+		return
+	}
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, "Successfully changed username"))
 }
 
 func (handler *UserHandler) ChangePasswordHandler(ctx *gin.Context) {
