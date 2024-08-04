@@ -13,7 +13,7 @@ type UserStorage interface {
 	GetByUsername(username string) (*UserModel, error)
 	Create(user UserModel) (*UserModel, error)
 	Update(user UserModel) error
-	Delete(id int) error
+	Delete(id uint) error
 }
 
 type UserStorageImpl struct {
@@ -84,7 +84,7 @@ func (storage *UserStorageImpl) Update(user UserModel) error {
 	return result.Error
 }
 
-func (storage *UserStorageImpl) Delete(id int) error {
+func (storage *UserStorageImpl) Delete(id uint) error {
 	result := storage.db.Delete(&UserModel{}, id)
 	return result.Error
 }

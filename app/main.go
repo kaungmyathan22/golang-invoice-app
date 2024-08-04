@@ -47,6 +47,8 @@ func main() {
 	userRoutes.PATCH("/change-password", middlewares.AuthMiddleware(userStorage), middlewares.ValidationMiddleware(&user.ChangePasswordDTO{}), userHandler.ChangePasswordHandler)
 	userRoutes.PATCH("/profile", middlewares.AuthMiddleware(userStorage), middlewares.ValidationMiddleware(&user.UpdateUserDTO{}), userHandler.UpdateUserHandler)
 
+	userRoutes.DELETE("/", middlewares.AuthMiddleware(userStorage), userHandler.DeleteUserHandler)
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong!",

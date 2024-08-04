@@ -188,5 +188,20 @@ func (handler *UserHandler) ChangePasswordHandler(ctx *gin.Context) {
 }
 
 func (handler *UserHandler) DeleteUserHandler(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"message": "DeleteUserHandler"})
+	rawUser, exists := ctx.Get("user")
+	if !exists {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong"))
+		return
+	}
+	userModel, ok := rawUser.(*UserModel)
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong"))
+		return
+	}
+	if err := handler.Storage.Delete((userModel.ID)); err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, gin.H{"message": "Something went wrong."}))
+		return
+	}
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, gin.H{"message": "Successfully deleted user."}))
 }
