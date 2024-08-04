@@ -12,6 +12,7 @@ type UserEntity struct {
 	UpdatedAt             time.Time      `json:"updatedAt"`
 	DeletedAt             gorm.DeletedAt `json:"deletedAt"`
 	Username              string         `json:"username"`
+	Email                 string         `json:"email"`
 	Password              string         `json:"-"`
 	LastLoggedInAt        time.Time      `json:"lastLoggedInAt"`
 	LastPasswordUpdatedAt time.Time      `json:"lastPasswordUpdatedAt"`
@@ -24,6 +25,7 @@ func UserEntityFromUserModel(model *UserModel) *UserEntity {
 		UpdatedAt:             model.UpdatedAt,
 		DeletedAt:             model.DeletedAt,
 		Username:              model.Username,
+		Email:                 model.Email,
 		Password:              model.Password,
 		LastLoggedInAt:        model.LastLoggedInAt,
 		LastPasswordUpdatedAt: model.LastPasswordUpdatedAt,

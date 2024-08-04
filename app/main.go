@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"regexp"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
+	"github.com/kaungmyathan22/golang-invoice-app/app/common"
 	"github.com/kaungmyathan22/golang-invoice-app/app/middlewares"
 	"github.com/kaungmyathan22/golang-invoice-app/app/user"
 	"gorm.io/driver/postgres"
@@ -30,8 +32,12 @@ func main() {
 	}
 	log.Println("successfully connected to database.")
 	db.AutoMigrate(&user.UserModel{})
+	db.AutoMigrate(&user.PasswordResetTokenModel{})
 
 	r := gin.Default()
+	r.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, common.GetEnvelope(http.StatusNotFound, fmt.Sprintf("%s %s not found", ctx.Request.Method, ctx.Request.URL)))
+	})
 	v1Route := r.Group("/api/v1")
 	/** user region */
 	userStorage := user.NewUserStorage(db)
@@ -48,6 +54,8 @@ func main() {
 	userRoutes.PATCH("/profile", middlewares.AuthMiddleware(userStorage), middlewares.ValidationMiddleware(&user.UpdateUserDTO{}), userHandler.UpdateUserHandler)
 
 	userRoutes.DELETE("/", middlewares.AuthMiddleware(userStorage), userHandler.DeleteUserHandler)
+
+	userRoutes.POST("/forgot-password", middlewares.ValidationMiddleware(&user.ForgotPasswordDTO{}), userHandler.ForgotPasswordHandler)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

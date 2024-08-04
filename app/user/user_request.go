@@ -6,6 +6,7 @@ import (
 
 type RegisterUserDTO struct {
 	Username string `json:"username" binding:"required" valid:"required~Username is required"`
+	Email    string `json:"email" binding:"required" valid:"email,required~Valid email is required"`
 	Password string `json:"password" binding:"required" valid:"sixToEightDigitAlphanumericPasswordValidator~Password must be between 6 to 8 alphanumeric characters"`
 }
 
@@ -14,11 +15,11 @@ func (dto *RegisterUserDTO) ToModel() (*UserModel, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &UserModel{Password: hashedPassword, Username: dto.Username}, nil
+	return &UserModel{Password: hashedPassword, Username: dto.Username, Email: dto.Email}, nil
 }
 
 type LoginUserDTO struct {
-	Username string `json:"username" binding:"required" valid:"required~Username is required"`
+	Email    string `json:"email" binding:"required" valid:"email,required~Valid email is required"`
 	Password string `json:"password" binding:"required" valid:"sixToEightDigitAlphanumericPasswordValidator~Password must be between 6 to 8 alphanumeric characters"`
 }
 
@@ -38,4 +39,8 @@ func (dto *ChangePasswordDTO) HashPassword() error {
 	}
 	dto.NewPassword = hashedPassword
 	return nil
+}
+
+type ForgotPasswordDTO struct {
+	Email string `json:"email" binding:"required" valid:"email,required~Valid email is required"`
 }

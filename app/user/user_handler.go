@@ -2,12 +2,15 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kaungmyathan22/golang-invoice-app/app/common"
 	"github.com/kaungmyathan22/golang-invoice-app/app/lib"
+	"github.com/mssola/user_agent"
 )
 
 type UserHandler struct {
@@ -58,15 +61,15 @@ func (handler *UserHandler) LoginHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("invalid payload type"))
 		return
 	}
-	user, err := handler.Storage.GetByUsername(payload.Username)
+	user, err := handler.Storage.GetByEmail(payload.Email)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			ctx.JSON(http.StatusNotFound, common.GetStatusBadRequestResponse("Invalid username / password"))
+			ctx.JSON(http.StatusNotFound, common.GetStatusBadRequestResponse("Invalid email / password"))
 			return
 		}
 	}
 	if !lib.CheckPasswordHash(payload.Password, user.Password) {
-		ctx.JSON(http.StatusNotFound, common.GetStatusBadRequestResponse("Invalid username / password"))
+		ctx.JSON(http.StatusNotFound, common.GetStatusBadRequestResponse("Invalid email / password"))
 		return
 	}
 	token, err := lib.GenerateToken(user.ID)
@@ -107,7 +110,7 @@ func (handler *UserHandler) CreateUserHandler(c *gin.Context) {
 	user, err = handler.Storage.Create(*user)
 	if err != nil {
 		if common.IsUniqueKeyViolation(err) {
-			c.JSON(http.StatusConflict, common.GetStatusConflictResponse(ErrUsernameAlreadyExists.Error()))
+			c.JSON(http.StatusConflict, common.GetStatusConflictResponse(ErrUserAlreadyExists.Error()))
 			return
 		}
 		c.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse(err.Error()))
@@ -200,8 +203,54 @@ func (handler *UserHandler) DeleteUserHandler(ctx *gin.Context) {
 	}
 	if err := handler.Storage.Delete((userModel.ID)); err != nil {
 		log.Println(err.Error())
-		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, gin.H{"message": "Something went wrong."}))
+		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong."))
 		return
 	}
 	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, gin.H{"message": "Successfully deleted user."}))
+}
+
+func (handler *UserHandler) ForgotPasswordHandler(ctx *gin.Context) {
+	rawPayload, exists := ctx.Get("payload")
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, common.GetEnvelope(http.StatusBadRequest, "payload do not exists"))
+	}
+	payload, ok := rawPayload.(*ForgotPasswordDTO)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, common.GetEnvelope(http.StatusBadRequest, "invalid payload type"))
+		return
+	}
+	user, err := handler.Storage.GetByEmail(payload.Email)
+	fmt.Println(user, err)
+	if err != nil && !errors.Is(err, ErrUserNotFound) {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong."))
+		return
+	}
+	if user != nil {
+		userAgentString := ctx.GetHeader("User-Agent")
+		ua := user_agent.New(userAgentString)
+
+		name, version := ua.Browser()
+		os := ua.OS()
+		platform := ua.Platform()
+
+		token := PasswordResetTokenModel{User: *user, UserID: user.ID, ExpiresAt: time.Now().Add(24 * time.Hour)}
+		err := token.GenerateToken()
+		plainToken := token.TokenHash
+		if err != nil {
+			log.Println(err.Error())
+			ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong."))
+			return
+		}
+		token.HashToken()
+		common.SendEmailHandler(common.EmailData{To: user.Email, Subject: "Password reset link", Template: common.FORGOT_PASSWORD_EMAIL_TEMPLATE, Data: common.ForgotPasswordData{
+			Name:       user.Username,
+			Link:       fmt.Sprintf("https://localhost:3000/rest?token=%s", plainToken),
+			OS:         os,
+			Browser:    fmt.Sprintf(name, version, platform),
+			SupportURL: "https://support.goivce.com/",
+		}})
+	}
+
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, "If your email exists in our database, you'll recieve an email for password reset."))
 }

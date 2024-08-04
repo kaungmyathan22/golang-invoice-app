@@ -11,6 +11,7 @@ type UserStorage interface {
 	GetAll(page, pageSize int) ([]UserModel, error)
 	GetById(id uint) (*UserModel, error)
 	GetByUsername(username string) (*UserModel, error)
+	GetByEmail(username string) (*UserModel, error)
 	Create(user UserModel) (*UserModel, error)
 	Update(user UserModel) error
 	Delete(id uint) error
@@ -62,6 +63,17 @@ func (storage *UserStorageImpl) GetById(id uint) (*UserModel, error) {
 func (storage *UserStorageImpl) GetByUsername(username string) (*UserModel, error) {
 	var user *UserModel
 	result := storage.db.Where("username = ?", username).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, result.Error
+	}
+	return user, nil
+}
+func (storage *UserStorageImpl) GetByEmail(email string) (*UserModel, error) {
+	var user *UserModel
+	result := storage.db.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
