@@ -8,6 +8,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
+	"github.com/kaungmyathan22/golang-invoice-app/app/category"
 	"github.com/kaungmyathan22/golang-invoice-app/app/common"
 	"github.com/kaungmyathan22/golang-invoice-app/app/middlewares"
 	"github.com/kaungmyathan22/golang-invoice-app/app/user"
@@ -33,6 +34,7 @@ func main() {
 	log.Println("successfully connected to database.")
 	db.AutoMigrate(&user.UserModel{})
 	db.AutoMigrate(&user.PasswordResetTokenModel{})
+	db.AutoMigrate(&category.CategoryModel{})
 
 	r := gin.Default()
 	r.NoRoute(func(ctx *gin.Context) {
@@ -58,6 +60,18 @@ func main() {
 
 	userRoutes.POST("/forgot-password", middlewares.ValidationMiddleware(&user.ForgotPasswordDTO{}), userHandler.ForgotPasswordHandler)
 	userRoutes.POST("/reset-password", middlewares.ValidationMiddleware(&user.ResetPasswordDTO{}), userHandler.ResetPasswordHandler)
+
+	categoryStorage := category.NewCategoryStorage(db)
+	categoryHandler := category.NewCategoryHandler(categoryStorage)
+	categoryRoutes := v1Route.Group("/category")
+	categoryRoutes.Use(middlewares.AuthMiddleware(userStorage))
+	{
+		categoryRoutes.POST("/", middlewares.ValidationMiddleware(&category.CreateCategoryDTO{}), categoryHandler.CreateCategoryHandler)
+		categoryRoutes.GET("/", categoryHandler.GetCategoriesHandler)
+		categoryRoutes.GET("/:id", categoryHandler.GetCategoryHandler)
+		categoryRoutes.PATCH("/:id", middlewares.ValidationMiddleware(&category.UpdateCategoryDTO{}), categoryHandler.UpdateCategoryHandler)
+		categoryRoutes.DELETE("/:id", categoryHandler.DeleteCategoryHandler)
+	}
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
