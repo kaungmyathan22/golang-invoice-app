@@ -44,3 +44,8 @@ func (dto *ChangePasswordDTO) HashPassword() error {
 type ForgotPasswordDTO struct {
 	Email string `json:"email" binding:"required" valid:"email,required~Valid email is required"`
 }
+
+type ResetPasswordDTO struct {
+	NewPassword string `json:"newPassword" binding:"required" valid:"sixToEightDigitAlphanumericPasswordValidator~Password must be between 6 to 8 alphanumeric characters"`
+	Token       string `json:"token" binding:"required" valid:"required~Password reset token is required"`
+}

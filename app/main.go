@@ -41,7 +41,8 @@ func main() {
 	v1Route := r.Group("/api/v1")
 	/** user region */
 	userStorage := user.NewUserStorage(db)
-	userHandler := user.NewUserHandler(userStorage)
+	tokenStorage := user.NewTokenStorage(db)
+	userHandler := user.NewUserHandler(userStorage, tokenStorage)
 	userRoutes := v1Route.Group("/auth")
 
 	userRoutes.POST("/register", middlewares.ValidationMiddleware(&user.RegisterUserDTO{}), userHandler.CreateUserHandler)
@@ -56,6 +57,7 @@ func main() {
 	userRoutes.DELETE("/", middlewares.AuthMiddleware(userStorage), userHandler.DeleteUserHandler)
 
 	userRoutes.POST("/forgot-password", middlewares.ValidationMiddleware(&user.ForgotPasswordDTO{}), userHandler.ForgotPasswordHandler)
+	userRoutes.POST("/reset-password", middlewares.ValidationMiddleware(&user.ResetPasswordDTO{}), userHandler.ResetPasswordHandler)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

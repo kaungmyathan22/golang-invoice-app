@@ -11,14 +11,16 @@ import (
 	"github.com/kaungmyathan22/golang-invoice-app/app/common"
 	"github.com/kaungmyathan22/golang-invoice-app/app/lib"
 	"github.com/mssola/user_agent"
+	"gorm.io/gorm"
 )
 
 type UserHandler struct {
-	Storage UserStorage
+	userStorage  UserStorage
+	tokenStorage TokenStorage
 }
 
-func NewUserHandler(db UserStorage) *UserHandler {
-	return &UserHandler{Storage: db}
+func NewUserHandler(userStorage UserStorage, tokenStorage TokenStorage) *UserHandler {
+	return &UserHandler{userStorage: userStorage, tokenStorage: tokenStorage}
 }
 
 func (handler *UserHandler) GetUsersHandler(ctx *gin.Context) {
@@ -29,7 +31,7 @@ func (handler *UserHandler) GetUsersHandler(ctx *gin.Context) {
 		return
 	}
 	pagination.SetDefaultPaginationValues()
-	users, err := handler.Storage.GetAll(pagination.Page, pagination.PageSize)
+	users, err := handler.userStorage.GetAll(pagination.Page, pagination.PageSize)
 	if err != nil {
 		log.Println(err.Error())
 		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, nil))
@@ -39,7 +41,7 @@ func (handler *UserHandler) GetUsersHandler(ctx *gin.Context) {
 	for _, model := range users {
 		userEntities = append(userEntities, *UserEntityFromUserModel(&model))
 	}
-	totalItems, err := handler.Storage.GetCount(nil)
+	totalItems, err := handler.userStorage.GetCount(nil)
 	if err != nil {
 		log.Println(err.Error())
 		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, nil))
@@ -61,7 +63,7 @@ func (handler *UserHandler) LoginHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("invalid payload type"))
 		return
 	}
-	user, err := handler.Storage.GetByEmail(payload.Email)
+	user, err := handler.userStorage.GetByEmail(payload.Email)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			ctx.JSON(http.StatusNotFound, common.GetStatusBadRequestResponse("Invalid email / password"))
@@ -107,7 +109,7 @@ func (handler *UserHandler) CreateUserHandler(c *gin.Context) {
 		return
 	}
 
-	user, err = handler.Storage.Create(*user)
+	user, err = handler.userStorage.Create(*user)
 	if err != nil {
 		if common.IsUniqueKeyViolation(err) {
 			c.JSON(http.StatusConflict, common.GetStatusConflictResponse(ErrUserAlreadyExists.Error()))
@@ -140,7 +142,7 @@ func (handler *UserHandler) UpdateUserHandler(ctx *gin.Context) {
 		return
 	}
 	userModel.Username = payload.Username
-	err := handler.Storage.Update(*userModel)
+	err := handler.userStorage.Update(*userModel)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong while changing username"))
 		return
@@ -182,7 +184,7 @@ func (handler *UserHandler) ChangePasswordHandler(ctx *gin.Context) {
 		return
 	}
 	userModel.Password = payload.NewPassword
-	err = handler.Storage.Update(*userModel)
+	err = handler.userStorage.Update(*userModel)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong while changing password"))
 		return
@@ -201,7 +203,7 @@ func (handler *UserHandler) DeleteUserHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong"))
 		return
 	}
-	if err := handler.Storage.Delete((userModel.ID)); err != nil {
+	if err := handler.userStorage.Delete((userModel.ID)); err != nil {
 		log.Println(err.Error())
 		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong."))
 		return
@@ -219,7 +221,7 @@ func (handler *UserHandler) ForgotPasswordHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, common.GetEnvelope(http.StatusBadRequest, "invalid payload type"))
 		return
 	}
-	user, err := handler.Storage.GetByEmail(payload.Email)
+	user, err := handler.userStorage.GetByEmail(payload.Email)
 	fmt.Println(user, err)
 	if err != nil && !errors.Is(err, ErrUserNotFound) {
 		log.Println(err.Error())
@@ -227,6 +229,13 @@ func (handler *UserHandler) ForgotPasswordHandler(ctx *gin.Context) {
 		return
 	}
 	if user != nil {
+		err := handler.tokenStorage.DeleteByUserId(user.ID)
+		if err != nil {
+			log.Println(err.Error())
+			ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong."))
+			return
+		}
+
 		userAgentString := ctx.GetHeader("User-Agent")
 		ua := user_agent.New(userAgentString)
 
@@ -235,22 +244,70 @@ func (handler *UserHandler) ForgotPasswordHandler(ctx *gin.Context) {
 		platform := ua.Platform()
 
 		token := PasswordResetTokenModel{User: *user, UserID: user.ID, ExpiresAt: time.Now().Add(24 * time.Hour)}
-		err := token.GenerateToken()
-		plainToken := token.TokenHash
+		err = token.GenerateToken()
 		if err != nil {
 			log.Println(err.Error())
 			ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong."))
 			return
 		}
-		token.HashToken()
+		_, err = handler.tokenStorage.Create(token)
+		if err != nil {
+			log.Println(err.Error())
+			ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong."))
+			return
+		}
 		common.SendEmailHandler(common.EmailData{To: user.Email, Subject: "Password reset link", Template: common.FORGOT_PASSWORD_EMAIL_TEMPLATE, Data: common.ForgotPasswordData{
 			Name:       user.Username,
-			Link:       fmt.Sprintf("https://localhost:3000/rest?token=%s", plainToken),
+			Link:       fmt.Sprintf("https://localhost:3000/rest?token=%s", token.TokenHash),
 			OS:         os,
 			Browser:    fmt.Sprintf(name, version, platform),
 			SupportURL: "https://support.goivce.com/",
 		}})
 	}
-
 	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, "If your email exists in our database, you'll recieve an email for password reset."))
+}
+
+func (handler *UserHandler) ResetPasswordHandler(ctx *gin.Context) {
+	rawPayload, exists := ctx.Get("payload")
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, common.GetEnvelope(http.StatusBadRequest, "payload do not exists"))
+	}
+	payload, ok := rawPayload.(*ResetPasswordDTO)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, common.GetEnvelope(http.StatusBadRequest, "invalid payload type"))
+		return
+	}
+	token, err := handler.tokenStorage.GetByHash(payload.Token)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.JSON(http.StatusBadRequest, common.GetEnvelope(http.StatusBadRequest, "invalid password reset token."))
+			return
+		}
+		log.Println(err.Error())
+		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong."))
+		return
+	}
+	user, err := handler.userStorage.GetById(token.UserID)
+	if err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusBadRequest, common.GetEnvelope(http.StatusBadRequest, "invalid password reset token."))
+		return
+	}
+	user.Password, err = lib.HashPassword(payload.NewPassword)
+	if err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusBadRequest, common.GetEnvelope(http.StatusBadRequest, "invalid password reset token."))
+		return
+	}
+	err = handler.userStorage.Update(*user)
+	if err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong while updating the password."))
+		return
+	}
+	err = handler.tokenStorage.Delete(token.ID)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, "Password reset successful."))
 }
