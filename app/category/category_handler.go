@@ -136,6 +136,7 @@ func (handler *CategoryHandler) DeleteCategoryHandler(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, gin.H{"message": "Successfully deleted category."}))
 }
+
 func (handler *CategoryHandler) GetCategoryHandler(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 32)
@@ -152,5 +153,5 @@ func (handler *CategoryHandler) GetCategoryHandler(ctx *gin.Context) {
 			return
 		}
 	}
-	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, category))
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, category.ToEntity()))
 }
