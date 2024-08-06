@@ -4,7 +4,8 @@ import "net/http"
 
 type APIResponse struct {
 	Status  int         `json:"status"`
-	Message string      `json:"message,omitempty"`
+	Message any         `json:"message,omitempty"`
+	Error   string      `json:"error,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
@@ -17,6 +18,13 @@ func GetStatusAcceptedResponse(data any) *APIResponse {
 }
 
 func GetEnvelope(status int, data any) *APIResponse {
+	if status >= 400 {
+		return &APIResponse{
+			Error:   http.StatusText(status),
+			Status:  status,
+			Message: data,
+		}
+	}
 	return &APIResponse{
 		Message: http.StatusText(status),
 		Status:  status,
