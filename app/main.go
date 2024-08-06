@@ -12,6 +12,7 @@ import (
 	"github.com/kaungmyathan22/golang-invoice-app/app/category"
 	"github.com/kaungmyathan22/golang-invoice-app/app/common"
 	"github.com/kaungmyathan22/golang-invoice-app/app/middlewares"
+	"github.com/kaungmyathan22/golang-invoice-app/app/order"
 	"github.com/kaungmyathan22/golang-invoice-app/app/product"
 	"github.com/kaungmyathan22/golang-invoice-app/app/user"
 	"gorm.io/driver/postgres"
@@ -54,6 +55,8 @@ func main() {
 	db.AutoMigrate(&user.PasswordResetTokenModel{})
 	db.AutoMigrate(&category.CategoryModel{})
 	db.AutoMigrate(&product.ProductModel{})
+	db.AutoMigrate(&order.OrderModel{})
+	db.AutoMigrate(&order.OrderItemModel{})
 
 	r := gin.Default()
 	r.NoRoute(func(ctx *gin.Context) {
