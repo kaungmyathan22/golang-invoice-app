@@ -6,12 +6,12 @@ type PaginationParamsRequest struct {
 }
 
 type PaginationMeta struct {
+	NextPage     *int  `json:"nextPage"`
+	PreviousPage *int  `json:"previousPage"`
 	TotalItems   int64 `json:"totalItems"`
 	TotalPages   int   `json:"totalPages"`
 	Page         int   `json:"page"`
 	PageSize     int   `json:"pageSize"`
-	NextPage     *int  `json:"nextPage"`
-	PreviousPage *int  `json:"previousPage"`
 }
 
 func (pagination *PaginationParamsRequest) SetDefaultPaginationValues() {
@@ -55,7 +55,7 @@ func NewPaginationParamsRequest() *PaginationParamsRequest {
 }
 
 type PaginationResponse struct {
+	Data     any `json:"data"`
 	Page     int `json:"page"`
 	PageSize int `json:"pageSize"`
-	Data     any `json:"data"`
 }

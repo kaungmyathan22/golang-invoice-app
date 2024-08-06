@@ -8,20 +8,20 @@ import (
 )
 
 type OrderEntity struct {
-	ID              uint             `json:"id"`
+	CreatedAt       time.Time        `json:"createdAt"`
+	UpdatedAt       time.Time        `json:"updatedAt"`
+	OrderItems      *OrderItemEntity `json:"orderItems"`
+	DeletedAt       gorm.DeletedAt   `json:"deletedAt"`
 	OrderNo         string           `json:"orderNo"`
 	OrderStatus     string           `json:"orderStatus"`
 	CustomerName    string           `json:"customerName"`
 	CustomerPhoneNo string           `json:"customerPhoneNo"`
 	BillingAddress  string           `json:"billingAddress"`
 	ShippingAddress string           `json:"shippingAddress"`
+	ID              uint             `json:"id"`
 	ShippingCosts   float64          `json:"shippingCosts"`
-	OrderItems      *OrderItemEntity `json:"orderItems"`
 	SubTotal        float64          `json:"subTotal"`
 	Total           float64          `json:"total"`
-	CreatedAt       time.Time        `json:"createdAt"`
-	UpdatedAt       time.Time        `json:"updatedAt"`
-	DeletedAt       gorm.DeletedAt   `json:"deletedAt"`
 }
 
 func (entity *OrderEntity) ToModel() *OrderModel {
@@ -42,15 +42,15 @@ func (entity *OrderEntity) ToModel() *OrderModel {
 }
 
 type OrderItemEntity struct {
+	CreatedAt time.Time              `json:"createdAt"`
+	UpdatedAt time.Time              `json:"updatedAt"`
+	Product   *product.ProductEntity `json:"product"`
+	DeletedAt gorm.DeletedAt         `json:"deletedAt"`
 	ID        uint                   `json:"id"`
 	OrderId   uint                   `json:"orderId"`
 	ProductId uint                   `json:"productId"`
-	Product   *product.ProductEntity `json:"product"`
 	Quantity  uint                   `json:"quantity"`
 	Total     float64                `json:"total"`
-	CreatedAt time.Time              `json:"createdAt"`
-	UpdatedAt time.Time              `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt         `json:"deletedAt"`
 }
 
 func (entity *OrderItemEntity) ToModel() *OrderItemModel {

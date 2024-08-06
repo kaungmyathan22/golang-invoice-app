@@ -7,14 +7,14 @@ import (
 )
 
 type ProductEntity struct {
-	ID         uint           `json:"id"`
-	Name       string         `json:"name"`
-	Slug       string         `json:"slug"`
-	CategoryID *uint          `json:"categoryId"`
-	Price      float64        `json:"price"`
 	CreatedAt  time.Time      `json:"createdAt"`
 	UpdatedAt  time.Time      `json:"updatedAt"`
+	CategoryID *uint          `json:"categoryId"`
 	DeletedAt  gorm.DeletedAt `json:"deletedAt"`
+	Name       string         `json:"name"`
+	Slug       string         `json:"slug"`
+	ID         uint           `json:"id"`
+	Price      float64        `json:"price"`
 }
 
 func (entity *ProductEntity) ToModel(model *ProductModel) *ProductModel {

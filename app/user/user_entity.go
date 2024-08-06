@@ -7,15 +7,15 @@ import (
 )
 
 type UserEntity struct {
-	ID                    uint           `json:"id"`
 	CreatedAt             time.Time      `json:"createdAt"`
 	UpdatedAt             time.Time      `json:"updatedAt"`
+	LastLoggedInAt        time.Time      `json:"lastLoggedInAt"`
+	LastPasswordUpdatedAt time.Time      `json:"lastPasswordUpdatedAt"`
 	DeletedAt             gorm.DeletedAt `json:"deletedAt"`
 	Username              string         `json:"username"`
 	Email                 string         `json:"email"`
 	Password              string         `json:"-"`
-	LastLoggedInAt        time.Time      `json:"lastLoggedInAt"`
-	LastPasswordUpdatedAt time.Time      `json:"lastPasswordUpdatedAt"`
+	ID                    uint           `json:"id"`
 }
 
 func UserEntityFromUserModel(model *UserModel) *UserEntity {

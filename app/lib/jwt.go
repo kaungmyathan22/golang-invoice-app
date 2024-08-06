@@ -13,8 +13,8 @@ var (
 )
 
 type CustomClaims struct {
-	UserID uint `json:"user_id"`
 	jwt.RegisteredClaims
+	UserID uint `json:"user_id"`
 }
 
 func GenerateToken(userID uint) (string, error) {

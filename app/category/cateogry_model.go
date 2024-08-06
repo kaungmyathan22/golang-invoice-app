@@ -14,12 +14,12 @@ var (
 )
 
 type CategoryModel struct {
-	ID        uint   `gorm:"primaryKey"`
-	Name      string `gorm:"column:name;not null"`
-	Slug      string `gorm:"column:slug;unique;not null"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Name      string         `gorm:"column:name;not null"`
+	Slug      string         `gorm:"column:slug;unique;not null"`
+	ID        uint           `gorm:"primaryKey"`
 }
 
 func (CategoryModel) TableName() string {

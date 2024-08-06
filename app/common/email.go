@@ -20,11 +20,11 @@ type ForgotPasswordData struct {
 }
 
 type EmailData struct {
+	Data     interface{}
 	Template string
 	Body     string
 	Subject  string
 	To       string
-	Data     interface{}
 }
 
 func SendEmailHandler(emailData EmailData) {

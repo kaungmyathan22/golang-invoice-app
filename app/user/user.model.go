@@ -13,15 +13,15 @@ var (
 )
 
 type UserModel struct {
-	ID                    uint `gorm:"primaryKey"`
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+	LastLoggedInAt        time.Time      `gorm:"column:lastLoggedInAt"`
+	LastPasswordUpdatedAt time.Time      `gorm:"column:lastPasswordUpdatedAt"`
 	DeletedAt             gorm.DeletedAt `gorm:"index"`
 	Username              string         `gorm:"column:username"`
 	Email                 string         `gorm:"type:citext;column:email;unique;not null"`
 	Password              string         `gorm:"column:password;not null"`
-	LastLoggedInAt        time.Time      `gorm:"column:lastLoggedInAt"`
-	LastPasswordUpdatedAt time.Time      `gorm:"column:lastPasswordUpdatedAt"`
+	ID                    uint           `gorm:"primaryKey"`
 }
 
 func (UserModel) TableName() string {

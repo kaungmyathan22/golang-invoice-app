@@ -51,19 +51,19 @@ func (os OrderStatus) String() string {
  * CREATE TYPE order_status AS ENUM ('Pending', 'Processed', 'Shipped', 'Delivered', 'Cancelled');
  */
 type OrderModel struct {
-	ID              uint        `gorm:"primaryKey"`
-	OrderNo         string      `gorm:"column:order_no;not null;unique"`
-	OrderStatus     OrderStatus `gorm:"type:order_status;not null; default:'Pending'"`
-	CustomerName    string      `gorm:"column:customer_name;not null"`
-	CustomerPhoneNo string      `gorm:"column:customer_phoneNo;not null"`
-	BillingAddress  string      `gorm:"column:billing_address;not null"`
-	ShippingAddress string      `gorm:"column:shipping_address;not null"`
-	ShippingCosts   float64     `gorm:"column:shipping_costs;not null"`
-	SubTotal        float64     `gorm:"column:sub_total;not null"`
-	Total           float64     `gorm:"column:total;not null"`
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	DeletedAt       gorm.DeletedAt `gorm:"index"`
+	OrderNo         string         `gorm:"column:order_no;not null;unique"`
+	OrderStatus     OrderStatus    `gorm:"type:order_status;not null; default:'Pending'"`
+	CustomerName    string         `gorm:"column:customer_name;not null"`
+	CustomerPhoneNo string         `gorm:"column:customer_phoneNo;not null"`
+	BillingAddress  string         `gorm:"column:billing_address;not null"`
+	ShippingAddress string         `gorm:"column:shipping_address;not null"`
+	ID              uint           `gorm:"primaryKey"`
+	ShippingCosts   float64        `gorm:"column:shipping_costs;not null"`
+	SubTotal        float64        `gorm:"column:sub_total;not null"`
+	Total           float64        `gorm:"column:total;not null"`
 }
 
 func (OrderModel) TableName() string {
@@ -102,16 +102,16 @@ func (model *OrderModel) ToEntity() *OrderEntity {
 }
 
 type OrderItemModel struct {
-	ID        uint                 `gorm:"primaryKey"`
-	OrderId   uint                 `gorm:"column:orderId;not null"`
-	Order     OrderModel           `gorm:"constraint:OnDelete:CASCADE;"`
-	ProductId uint                 `gorm:"column:productId;not null"`
-	Product   product.ProductModel `gorm:"constraint:OnDelete:RESTRICT;"`
-	Quantity  uint                 `gorm:"column:quantity;not null"`
-	Total     float64              `gorm:"column:total;not null"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Product   product.ProductModel `gorm:"constraint:OnDelete:RESTRICT;"`
+	Order     OrderModel           `gorm:"constraint:OnDelete:CASCADE;"`
+	DeletedAt gorm.DeletedAt       `gorm:"index"`
+	ID        uint                 `gorm:"primaryKey"`
+	OrderId   uint                 `gorm:"column:orderId;not null"`
+	ProductId uint                 `gorm:"column:productId;not null"`
+	Quantity  uint                 `gorm:"column:quantity;not null"`
+	Total     float64              `gorm:"column:total;not null"`
 }
 
 func (OrderItemModel) TableName() string {

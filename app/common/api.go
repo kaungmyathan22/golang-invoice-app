@@ -3,10 +3,10 @@ package common
 import "net/http"
 
 type APIResponse struct {
-	Status  int         `json:"status"`
 	Message any         `json:"message,omitempty"`
-	Error   string      `json:"error,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
+	Status  int         `json:"status"`
 }
 
 func GetStatusAcceptedResponse(data any) *APIResponse {
