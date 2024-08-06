@@ -10,11 +10,11 @@ import (
 )
 
 type PasswordResetTokenModel struct {
-	User      UserModel
 	ExpiresAt time.Time `gorm:"not null"`
 	gorm.Model
 	TokenHash string `gorm:"uniqueIndex;not null"`
-	UserID    uint   `gorm:"not null"`
+	User      UserModel
+	UserID    uint `gorm:"not null"`
 }
 
 func (PasswordResetTokenModel) TableName() string {

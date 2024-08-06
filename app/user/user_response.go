@@ -11,6 +11,6 @@ func FromModel(model *UserModel) *UserRegisterResponse {
 }
 
 type UserLoginResponse struct {
-	User  UserEntity `json:"user"`
 	Token string     `json:"token"`
+	User  UserEntity `json:"user"`
 }

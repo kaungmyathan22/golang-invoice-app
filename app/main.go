@@ -115,7 +115,7 @@ func main() {
 	orderRoutes.Use(middlewares.AuthMiddleware(userStorage))
 	{
 		orderRoutes.POST("/", middlewares.ValidationMiddleware(&order.CreateOrderDTO{}), orderHandler.CreateOrderHandler)
-		// orderRoutes.GET("/", orderHandler.GetOrdersHandler)
+		orderRoutes.GET("/", orderHandler.GetOrdersHandler)
 		// orderRoutes.GET("/:id", orderHandler.GetOrderHandler)
 		// orderRoutes.PATCH("/:id", middlewares.ValidationMiddleware(&order.UpdateOrderDTO{}), orderHandler.UpdateOrderHandler)
 		// orderRoutes.DELETE("/:id", orderHandler.DeleteOrderHandler)

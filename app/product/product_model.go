@@ -20,10 +20,10 @@ type ProductModel struct {
 
 	UpdatedAt  time.Time
 	CategoryID *uint                  `gorm:"column:categoryId"`
-	Category   category.CategoryModel `gorm:"constraint:OnDelete:SET NULL;"`
 	DeletedAt  gorm.DeletedAt         `gorm:"index"`
 	Name       string                 `gorm:"column:name;;not null"`
 	Slug       string                 `goorm:"column:slug;unique; not null"`
+	Category   category.CategoryModel `gorm:"constraint:OnDelete:SET NULL;"`
 	ID         uint                   `gorm:"primaryKey"`
 	Price      float64                `gorm:"type:decimal(10,2);column:price"`
 }

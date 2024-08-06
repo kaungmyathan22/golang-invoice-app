@@ -85,9 +85,9 @@ func (order *OrderModel) BeforeCreate(tx *gorm.DB) (err error) {
 type OrderItemModel struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt       `gorm:"index"`
 	Product   product.ProductModel `gorm:"constraint:OnDelete:RESTRICT;"`
 	Order     OrderModel           `gorm:"constraint:OnDelete:CASCADE;"`
-	DeletedAt gorm.DeletedAt       `gorm:"index"`
 	ID        uint                 `gorm:"primaryKey"`
 	OrderId   uint                 `gorm:"column:orderId;not null"`
 	ProductId uint                 `gorm:"column:productId;not null"`
