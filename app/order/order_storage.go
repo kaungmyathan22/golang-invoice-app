@@ -2,6 +2,7 @@ package order
 
 import (
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -16,6 +17,7 @@ type OrderStorage interface {
 
 	/** Order Items */
 	CreateOrderItem(orderItem OrderItemModel) (*OrderItemModel, error)
+	GetOrderItems(orderId uint) ([]OrderItemModel, error)
 }
 
 type OrderStorageImpl struct {
@@ -43,6 +45,7 @@ func (storage *OrderStorageImpl) GetAll(page, pageSize int) ([]OrderModel, error
 	var Orders []OrderModel
 	offset := (page - 1) * pageSize
 	result := storage.db.Offset(offset).Limit(pageSize).Find(&Orders)
+	fmt.Println(result.Error)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -98,4 +101,12 @@ func (storage *OrderStorageImpl) CreateOrderItem(orderItem OrderItemModel) (*Ord
 		return nil, err
 	}
 	return &orderItem, nil
+}
+func (storage *OrderStorageImpl) GetOrderItems(orderId uint) ([]OrderItemModel, error) {
+	var orderItems []OrderItemModel
+	result := storage.db.Find(&orderItems)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return orderItems, nil
 }

@@ -82,7 +82,7 @@ func (handler *OrderHandler) CreateOrderHandler(ctx *gin.Context) {
 			orderItem := OrderItemModel{ProductId: productModel.ID, Quantity: uint(v.Quantity), Total: float64(float64(v.Quantity) * productModel.Price)}
 			orderItemModels = append(orderItemModels, orderItem)
 		}
-		order.OrderStatus = OrderStatusPending
+		order.OrderStatus = string(OrderStatusPending)
 		order.Total = order.ShippingCosts + order.SubTotal
 		orderModel, err := handler.orderStorage.Create(*order)
 		var responsePayload OrderEntity
@@ -193,6 +193,19 @@ func (handler *OrderHandler) GetOrderHandler(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, common.GetEnvelope(http.StatusNotFound, fmt.Sprintf("Order with given id %s not found", idStr)))
 			return
 		}
+		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong whlie getting order"))
+		return
 	}
-	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, order.ToEntity()))
+	orderItems, err := handler.orderStorage.GetOrderItems(order.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.GetEnvelope(http.StatusInternalServerError, "Something went wrong whlie getting order items"))
+		return
+	}
+	var orderItemsEntities []OrderItemEntity
+	for _, model := range orderItems {
+		orderItemsEntities = append(orderItemsEntities, *model.ToEntity())
+	}
+	orderEntity := order.ToEntity()
+	orderEntity.OrderItems = &orderItemsEntities
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, orderEntity))
 }

@@ -4,7 +4,7 @@ func (model *OrderModel) ToEntity() *OrderEntity {
 	return &OrderEntity{
 		ID:              model.ID,
 		CustomerName:    model.CustomerName,
-		OrderStatus:     model.OrderStatus.String(),
+		OrderStatus:     model.OrderStatus,
 		CustomerPhoneNo: model.CustomerPhoneNo,
 		BillingAddress:  model.BillingAddress,
 		OrderNo:         model.OrderNo,
@@ -46,7 +46,7 @@ func (entity *OrderItemEntity) ToModel() *OrderItemModel {
 func (entity *OrderEntity) ToModel() *OrderModel {
 	return &OrderModel{
 		ID:              entity.ID,
-		OrderStatus:     OrderStatus(entity.OrderStatus),
+		OrderStatus:     (entity.OrderStatus),
 		CustomerName:    entity.CustomerName,
 		CustomerPhoneNo: entity.CustomerPhoneNo,
 		BillingAddress:  entity.BillingAddress,

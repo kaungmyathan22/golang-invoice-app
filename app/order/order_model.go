@@ -1,7 +1,6 @@
 package order
 
 import (
-	"database/sql/driver"
 	"errors"
 	"time"
 
@@ -25,26 +24,27 @@ const (
 	OrderStatusCancelled OrderStatus = "Cancelled"
 )
 
-func (os *OrderStatus) Scan(value interface{}) error {
-	*os = OrderStatus(value.([]byte))
-	return nil
-}
+// func (os *OrderStatus) Scan(value interface{}) error {
+// 	*os = OrderStatus(value.([]byte))
+// 	fmt.Println(value)
+// 	return nil
+// }
 
-func (os OrderStatus) Value() (driver.Value, error) {
-	return string(os), nil
-}
+// func (os OrderStatus) Value() (driver.Value, error) {
+// 	return string(os), nil
+// }
 
-func (os OrderStatus) IsValid() bool {
-	switch os {
-	case OrderStatusPending, OrderStatusProcessed, OrderStatusShipped, OrderStatusDelivered, OrderStatusCancelled:
-		return true
-	}
-	return false
-}
+// func (os OrderStatus) IsValid() bool {
+// 	switch os {
+// 	case OrderStatusPending, OrderStatusProcessed, OrderStatusShipped, OrderStatusDelivered, OrderStatusCancelled:
+// 		return true
+// 	}
+// 	return false
+// }
 
-func (os OrderStatus) String() string {
-	return string(os)
-}
+// func (os OrderStatus) String() string {
+// 	return string(os)
+// }
 
 /**
  * CREATE TYPE order_status AS ENUM ('Pending', 'Processed', 'Shipped', 'Delivered', 'Cancelled');
@@ -54,7 +54,7 @@ type OrderModel struct {
 	UpdatedAt       time.Time
 	DeletedAt       gorm.DeletedAt `gorm:"index"`
 	OrderNo         string         `gorm:"column:order_no;not null;unique"`
-	OrderStatus     OrderStatus    `gorm:"type:order_status;not null; default:'Pending'"`
+	OrderStatus     string         `gorm:"type:order_status;not null; default:'Pending'"`
 	CustomerName    string         `gorm:"column:customer_name;not null"`
 	CustomerPhoneNo string         `gorm:"column:customer_phoneNo;not null"`
 	BillingAddress  string         `gorm:"column:billing_address;not null"`
