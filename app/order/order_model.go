@@ -84,23 +84,6 @@ func (order *OrderModel) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (model *OrderModel) ToEntity() *OrderEntity {
-	return &OrderEntity{
-		ID:              model.ID,
-		CustomerName:    model.CustomerName,
-		OrderStatus:     model.OrderStatus.String(),
-		CustomerPhoneNo: model.CustomerPhoneNo,
-		BillingAddress:  model.BillingAddress,
-		ShippingAddress: model.ShippingAddress,
-		ShippingCosts:   model.ShippingCosts,
-		SubTotal:        model.SubTotal,
-		Total:           model.Total,
-		CreatedAt:       model.CreatedAt,
-		UpdatedAt:       model.UpdatedAt,
-		DeletedAt:       model.DeletedAt,
-	}
-}
-
 type OrderItemModel struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -116,16 +99,4 @@ type OrderItemModel struct {
 
 func (OrderItemModel) TableName() string {
 	return "order_item"
-}
-
-func (model *OrderItemModel) ToEntity() *OrderItemEntity {
-	return &OrderItemEntity{
-		ID:        model.ID,
-		ProductId: model.ProductId,
-		OrderId:   model.OrderId,
-		Total:     model.Total,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
-		DeletedAt: model.DeletedAt,
-	}
 }

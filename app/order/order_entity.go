@@ -24,23 +24,6 @@ type OrderEntity struct {
 	Total           float64          `json:"total"`
 }
 
-func (entity *OrderEntity) ToModel() *OrderModel {
-	return &OrderModel{
-		ID:              entity.ID,
-		OrderStatus:     OrderStatus(entity.OrderStatus),
-		CustomerName:    entity.CustomerName,
-		CustomerPhoneNo: entity.CustomerPhoneNo,
-		BillingAddress:  entity.BillingAddress,
-		ShippingAddress: entity.ShippingAddress,
-		ShippingCosts:   entity.ShippingCosts,
-		SubTotal:        entity.SubTotal,
-		Total:           entity.Total,
-		CreatedAt:       entity.CreatedAt,
-		UpdatedAt:       entity.UpdatedAt,
-		DeletedAt:       entity.DeletedAt,
-	}
-}
-
 type OrderItemEntity struct {
 	CreatedAt time.Time              `json:"createdAt"`
 	UpdatedAt time.Time              `json:"updatedAt"`
@@ -51,16 +34,4 @@ type OrderItemEntity struct {
 	ProductId uint                   `json:"productId"`
 	Quantity  uint                   `json:"quantity"`
 	Total     float64                `json:"total"`
-}
-
-func (entity *OrderItemEntity) ToModel() *OrderItemModel {
-	return &OrderItemModel{
-		ID:        entity.ID,
-		ProductId: entity.ProductId,
-		OrderId:   entity.OrderId,
-		Total:     entity.Total,
-		CreatedAt: entity.CreatedAt,
-		UpdatedAt: entity.UpdatedAt,
-		DeletedAt: entity.DeletedAt,
-	}
 }
