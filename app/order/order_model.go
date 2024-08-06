@@ -1,0 +1,131 @@
+package order
+
+import (
+	"database/sql/driver"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/kaungmyathan22/golang-invoice-app/app/lib"
+	"github.com/kaungmyathan22/golang-invoice-app/app/product"
+	"gorm.io/gorm"
+)
+
+var (
+	ErrOrderNotFound      = errors.New("order not found")
+	ErrOrderAlreadyExists = errors.New("order name already exists")
+)
+
+type OrderStatus string
+
+const (
+	OrderStatusPending   OrderStatus = "Pending"
+	OrderStatusProcessed OrderStatus = "Processed"
+	OrderStatusShipped   OrderStatus = "Shipped"
+	OrderStatusDelivered OrderStatus = "Delivered"
+	OrderStatusCancelled OrderStatus = "Cancelled"
+)
+
+func (os *OrderStatus) Scan(value interface{}) error {
+	*os = OrderStatus(value.([]byte))
+	return nil
+}
+
+func (os OrderStatus) Value() (driver.Value, error) {
+	return string(os), nil
+}
+
+func (os OrderStatus) IsValid() bool {
+	switch os {
+	case OrderStatusPending, OrderStatusProcessed, OrderStatusShipped, OrderStatusDelivered, OrderStatusCancelled:
+		return true
+	}
+	return false
+}
+
+func (os OrderStatus) String() string {
+	return string(os)
+}
+
+/**
+ * CREATE TYPE order_status AS ENUM ('Pending', 'Processed', 'Shipped', 'Delivered', 'Cancelled');
+ */
+type OrderModel struct {
+	ID              uint        `gorm:"primaryKey"`
+	OrderNo         string      `gorm:"column:order_no;not null;unique"`
+	OrderStatus     OrderStatus `gorm:"type:order_status;not null; default:'Pending'"`
+	CustomerName    string      `gorm:"column:customer_name;not null"`
+	CustomerPhoneNo string      `gorm:"column:customer_phoneNo;not null"`
+	BillingAddress  string      `gorm:"column:billing_address;not null"`
+	ShippingAddress string      `gorm:"column:shipping_address;not null"`
+	ShippingCosts   float64     `gorm:"column:shipping_costs;not null"`
+	SubTotal        float64     `gorm:"column:sub_total;not null"`
+	Total           float64     `gorm:"column:total;not null"`
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DeletedAt       gorm.DeletedAt `gorm:"index"`
+}
+
+func (OrderModel) TableName() string {
+	return "order"
+}
+
+func (order *OrderModel) BeforeCreate(tx *gorm.DB) (err error) {
+	fmt.Println("BeforeCreate")
+	order.OrderNo, _ = lib.GenerateOrderNumber()
+	for {
+		var count int64
+		tx.Model(&OrderModel{}).Where("slug = ?", order.OrderNo).Count(&count)
+		if count == 0 {
+			break
+		}
+		order.OrderNo, _ = lib.GenerateOrderNumber()
+	}
+	return nil
+}
+
+func (model *OrderModel) ToEntity() *OrderEntity {
+	return &OrderEntity{
+		ID:              model.ID,
+		CustomerName:    model.CustomerName,
+		OrderStatus:     model.OrderStatus.String(),
+		CustomerPhoneNo: model.CustomerPhoneNo,
+		BillingAddress:  model.BillingAddress,
+		ShippingAddress: model.ShippingAddress,
+		ShippingCosts:   model.ShippingCosts,
+		SubTotal:        model.SubTotal,
+		Total:           model.Total,
+		CreatedAt:       model.CreatedAt,
+		UpdatedAt:       model.UpdatedAt,
+		DeletedAt:       model.DeletedAt,
+	}
+}
+
+type OrderItemModel struct {
+	ID        uint                 `gorm:"primaryKey"`
+	OrderId   uint                 `gorm:"column:orderId;not null"`
+	Order     OrderModel           `gorm:"constraint:OnDelete:CASCADE;"`
+	ProductId uint                 `gorm:"column:productId;not null"`
+	Product   product.ProductModel `gorm:"constraint:OnDelete:RESTRICT;"`
+	Quantity  uint                 `gorm:"column:quantity;not null"`
+	Total     float64              `gorm:"column:total;not null"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+}
+
+func (OrderItemModel) TableName() string {
+	return "order_item"
+}
+
+func (model *OrderItemModel) ToEntity() *OrderItemEntity {
+	return &OrderItemEntity{
+		ID:        model.ID,
+		ProductId: model.ProductId,
+		OrderId:   model.OrderId,
+		Total:     model.Total,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
+		DeletedAt: model.DeletedAt,
+	}
+}
