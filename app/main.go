@@ -5,16 +5,33 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	"github.com/kaungmyathan22/golang-invoice-app/app/category"
 	"github.com/kaungmyathan22/golang-invoice-app/app/common"
 	"github.com/kaungmyathan22/golang-invoice-app/app/middlewares"
+	"github.com/kaungmyathan22/golang-invoice-app/app/product"
 	"github.com/kaungmyathan22/golang-invoice-app/app/user"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+func IsNull(str string) bool {
+	return len(str) == 0
+}
+func IsDecimal(str string) bool {
+	if IsNull(str) {
+		return false
+	}
+	_, err := strconv.ParseInt(str, 10, 64)
+	if err == nil {
+		return true
+	}
+	_, err = strconv.ParseFloat(str, 64)
+	return err == nil
+}
 
 func sixToEightDigitAlphanumericPasswordValidator(password string) bool {
 	re := regexp.MustCompile(`^[a-zA-Z0-9]{6,8}$`)
@@ -24,6 +41,7 @@ func sixToEightDigitAlphanumericPasswordValidator(password string) bool {
 func main() {
 	govalidator.SetFieldsRequiredByDefault(true)
 	govalidator.TagMap["sixToEightDigitAlphanumericPasswordValidator"] = govalidator.Validator(sixToEightDigitAlphanumericPasswordValidator)
+	govalidator.TagMap["isDecimal"] = govalidator.Validator(IsDecimal)
 
 	dsn := "host=localhost user=admin password=admin dbname=invoice_app port=5433 sslmode=disable"
 	// docker exec -it postgres psql -U admin -d postgres
@@ -35,6 +53,7 @@ func main() {
 	db.AutoMigrate(&user.UserModel{})
 	db.AutoMigrate(&user.PasswordResetTokenModel{})
 	db.AutoMigrate(&category.CategoryModel{})
+	db.AutoMigrate(&product.ProductModel{})
 
 	r := gin.Default()
 	r.NoRoute(func(ctx *gin.Context) {
@@ -71,6 +90,19 @@ func main() {
 		categoryRoutes.GET("/:id", categoryHandler.GetCategoryHandler)
 		categoryRoutes.PATCH("/:id", middlewares.ValidationMiddleware(&category.UpdateCategoryDTO{}), categoryHandler.UpdateCategoryHandler)
 		categoryRoutes.DELETE("/:id", categoryHandler.DeleteCategoryHandler)
+	}
+
+	/** Product  */
+	productStorage := product.NewProductStorage(db)
+	productHandler := product.NewProductHandler(productStorage)
+	productRoutes := v1Route.Group("/products")
+	productRoutes.Use(middlewares.AuthMiddleware(userStorage))
+	{
+		productRoutes.POST("/", middlewares.ValidationMiddleware(&product.CreateProductDTO{}), productHandler.CreateProductHandler)
+		productRoutes.GET("/", productHandler.GetProductsHandler)
+		productRoutes.GET("/:id", productHandler.GetProductHandler)
+		productRoutes.PATCH("/:id", middlewares.ValidationMiddleware(&product.UpdateProductDTO{}), productHandler.UpdateProductHandler)
+		productRoutes.DELETE("/:id", productHandler.DeleteProductHandler)
 	}
 
 	r.GET("/ping", func(c *gin.Context) {
