@@ -3,7 +3,6 @@ package order
 import (
 	"database/sql/driver"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/kaungmyathan22/golang-invoice-app/app/lib"
@@ -71,11 +70,10 @@ func (OrderModel) TableName() string {
 }
 
 func (order *OrderModel) BeforeCreate(tx *gorm.DB) (err error) {
-	fmt.Println("BeforeCreate")
 	order.OrderNo, _ = lib.GenerateOrderNumber()
 	for {
 		var count int64
-		tx.Model(&OrderModel{}).Where("slug = ?", order.OrderNo).Count(&count)
+		tx.Model(&OrderModel{}).Where("order_no = ?", order.OrderNo).Count(&count)
 		if count == 0 {
 			break
 		}

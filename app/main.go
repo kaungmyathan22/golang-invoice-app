@@ -108,6 +108,19 @@ func main() {
 		productRoutes.DELETE("/:id", productHandler.DeleteProductHandler)
 	}
 
+	/** Order  */
+	orderStorage := order.NewOrderStorage(db)
+	orderHandler := order.NewOrderHandler(orderStorage, productStorage, db)
+	orderRoutes := v1Route.Group("/orders")
+	orderRoutes.Use(middlewares.AuthMiddleware(userStorage))
+	{
+		orderRoutes.POST("/", middlewares.ValidationMiddleware(&order.CreateOrderDTO{}), orderHandler.CreateOrderHandler)
+		// orderRoutes.GET("/", orderHandler.GetOrdersHandler)
+		// orderRoutes.GET("/:id", orderHandler.GetOrderHandler)
+		// orderRoutes.PATCH("/:id", middlewares.ValidationMiddleware(&order.UpdateOrderDTO{}), orderHandler.UpdateOrderHandler)
+		// orderRoutes.DELETE("/:id", orderHandler.DeleteOrderHandler)
+	}
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong!",

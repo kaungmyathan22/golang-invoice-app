@@ -1,13 +1,32 @@
 package order
 
 type CreateOrderDTO struct {
-	Name       string  `json:"name" binding:"required" valid:"required~Order name is required"`
-	Price      float64 `json:"price" binding:"required" valid:"required~Order price is required,isDecimal~Price must be greater than zero"`
-	CategoryID uint    `json:"categoryId" binding:"required" valid:"required~Category ID is required,isDecimal~categoryId must be valid number"`
+	CustomerName    string                  `json:"customerName" binding:"required" valid:"required~customerName is required"`
+	CustomerPhoneNo string                  `json:"customerPhoneNo" binding:"required" valid:"required~customerPhoneNo is required"`
+	BillingAddress  string                  `json:"billingAddress" binding:"required" valid:"required~billingAddress is required"`
+	ShippingAddress string                  `json:"shippingAddress" binding:"required" valid:"required~shippingAddress is required"`
+	OrderItems      []CreateOrderItemEntity `json:"orderItems" binding:"required"`
 }
 
-func (dto *CreateOrderDTO) ToModel() (*OrderModel, error) {
-	return &OrderModel{}, nil
+type CreateOrderItemEntity struct {
+	ProductId int `json:"productId" binding:"required" valid:"required~productId is required,numeric~productId must be a valid interger value."`
+	Quantity  int `json:"quantity" binding:"required" valid:"required~quantity is required,numeric~quantity must be a valid interger value."`
+}
+
+func (dto *CreateOrderItemEntity) ToModel() (*OrderItemModel, error) {
+	return &OrderItemModel{
+		ProductId: uint(dto.ProductId),
+		Quantity:  uint(dto.Quantity),
+	}, nil
+}
+
+func (dto *CreateOrderDTO) ToModel() *OrderModel {
+	return &OrderModel{
+		CustomerName:    dto.CustomerName,
+		CustomerPhoneNo: dto.CustomerPhoneNo,
+		BillingAddress:  dto.BillingAddress,
+		ShippingAddress: dto.ShippingAddress,
+	}
 }
 
 type UpdateOrderDTO struct {

@@ -13,6 +13,9 @@ type OrderStorage interface {
 	Create(Order OrderModel) (*OrderModel, error)
 	Update(Order OrderModel) error
 	Delete(id uint) error
+
+	/** Order Items */
+	CreateOrderItem(orderItem OrderItemModel) (*OrderItemModel, error)
 }
 
 type OrderStorageImpl struct {
@@ -86,4 +89,13 @@ func (storage *OrderStorageImpl) Update(Order OrderModel) error {
 func (storage *OrderStorageImpl) Delete(id uint) error {
 	result := storage.db.Delete(&OrderModel{}, id)
 	return result.Error
+}
+
+/** Order items */
+func (storage *OrderStorageImpl) CreateOrderItem(orderItem OrderItemModel) (*OrderItemModel, error) {
+	result := storage.db.Create(&orderItem)
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+	return &orderItem, nil
 }
