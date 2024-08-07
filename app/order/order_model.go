@@ -24,28 +24,6 @@ const (
 	OrderStatusCancelled OrderStatus = "Cancelled"
 )
 
-// func (os *OrderStatus) Scan(value interface{}) error {
-// 	*os = OrderStatus(value.([]byte))
-// 	fmt.Println(value)
-// 	return nil
-// }
-
-// func (os OrderStatus) Value() (driver.Value, error) {
-// 	return string(os), nil
-// }
-
-// func (os OrderStatus) IsValid() bool {
-// 	switch os {
-// 	case OrderStatusPending, OrderStatusProcessed, OrderStatusShipped, OrderStatusDelivered, OrderStatusCancelled:
-// 		return true
-// 	}
-// 	return false
-// }
-
-// func (os OrderStatus) String() string {
-// 	return string(os)
-// }
-
 /**
  * CREATE TYPE order_status AS ENUM ('Pending', 'Processed', 'Shipped', 'Delivered', 'Cancelled');
  */

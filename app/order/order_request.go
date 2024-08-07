@@ -30,5 +30,5 @@ func (dto *CreateOrderDTO) ToModel() *OrderModel {
 }
 
 type UpdateOrderDTO struct {
-	CreateOrderDTO
+	Status string `json:"status" binding:"required" valid:"required~status is required,status~status must be one of the following: (Pending / Processed / Shipped / Delivered / Cancelled)"`
 }

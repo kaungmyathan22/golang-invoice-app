@@ -117,43 +117,6 @@ func (handler *OrderHandler) CreateOrderHandler(ctx *gin.Context) {
 	}
 }
 
-// func (handler *OrderHandler) UpdateOrderHandler(ctx *gin.Context) {
-
-// 	rawPayload, exists := ctx.Get("payload")
-// 	if !exists {
-// 		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("payload do not exists"))
-// 	}
-// 	payload, ok := rawPayload.(*UpdateOrderDTO)
-// 	if !ok {
-// 		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("invalid payload type"))
-// 		return
-// 	}
-// 	idStr := ctx.Param("id")
-// 	id, err := strconv.ParseInt(idStr, 10, 32)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
-// 		return
-// 	}
-// 	orderId := uint(id)
-
-// 	order, err := handler.OrderStorage.GetById(orderId)
-// 	if err != nil {
-// 		if errors.Is(err, ErrOrderNotFound) {
-// 			ctx.JSON(http.StatusNotFound, common.GetEnvelope(http.StatusNotFound, fmt.Sprintf("Order with given id %s not found", idStr)))
-// 			return
-// 		}
-// 	}
-// 	order.Name = payload.Name
-// 	order.CategoryID = &payload.CategoryID
-// 	err = handler.OrderStorage.Update(*order)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong while changing Order name"))
-// 		return
-// 	}
-// ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, "Successfully changed Order name"))
-// ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, payload))
-// }
-
 func (handler *OrderHandler) DeleteOrderHandler(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 32)
@@ -208,4 +171,38 @@ func (handler *OrderHandler) GetOrderHandler(ctx *gin.Context) {
 	orderEntity := order.ToEntity()
 	orderEntity.OrderItems = &orderItemsEntities
 	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, orderEntity))
+}
+
+func (handler *OrderHandler) UpdateOrderHandler(ctx *gin.Context) {
+	rawPayload, exists := ctx.Get("payload")
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("payload do not exists"))
+	}
+	payload, ok := rawPayload.(*UpdateOrderDTO)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, common.GetStatusBadRequestResponse("invalid payload type"))
+		return
+	}
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 32)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
+		return
+	}
+	orderId := uint(id)
+
+	order, err := handler.orderStorage.GetById(orderId)
+	if err != nil {
+		if errors.Is(err, ErrOrderNotFound) {
+			ctx.JSON(http.StatusNotFound, common.GetEnvelope(http.StatusNotFound, fmt.Sprintf("Order with given id %s not found", idStr)))
+			return
+		}
+	}
+	order.OrderStatus = payload.Status
+	err = handler.orderStorage.Update(*order)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.GetInternalServerErrorResponse("something went wrong while changing Order status"))
+		return
+	}
+	ctx.JSON(http.StatusOK, common.GetEnvelope(http.StatusOK, "Successfully updated order status"))
 }

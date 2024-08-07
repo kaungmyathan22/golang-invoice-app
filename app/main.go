@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
@@ -19,9 +20,27 @@ import (
 	"gorm.io/gorm"
 )
 
+var validStatusOptions = []string{
+	"Pending",
+	"Processed",
+	"Shipped",
+	"Delivered",
+	"Cancelled",
+}
+
+func statusValidator(status string) bool {
+	for _, option := range validStatusOptions {
+		if strings.EqualFold(status, option) {
+			return true
+		}
+	}
+	return false
+}
+
 func IsNull(str string) bool {
 	return len(str) == 0
 }
+
 func IsDecimal(str string) bool {
 	if IsNull(str) {
 		return false
@@ -43,6 +62,7 @@ func main() {
 	govalidator.SetFieldsRequiredByDefault(true)
 	govalidator.TagMap["sixToEightDigitAlphanumericPasswordValidator"] = govalidator.Validator(sixToEightDigitAlphanumericPasswordValidator)
 	govalidator.TagMap["isDecimal"] = govalidator.Validator(IsDecimal)
+	govalidator.TagMap["status"] = govalidator.Validator(statusValidator)
 
 	dsn := "host=localhost user=admin password=admin dbname=invoice_app port=5433 sslmode=disable"
 	// docker exec -it postgres psql -U admin -d postgres
@@ -117,8 +137,8 @@ func main() {
 		orderRoutes.POST("/", middlewares.ValidationMiddleware(&order.CreateOrderDTO{}), orderHandler.CreateOrderHandler)
 		orderRoutes.GET("/", orderHandler.GetOrdersHandler)
 		orderRoutes.GET("/:id", orderHandler.GetOrderHandler)
-		// orderRoutes.PATCH("/:id", middlewares.ValidationMiddleware(&order.UpdateOrderDTO{}), orderHandler.UpdateOrderHandler)
-		// orderRoutes.DELETE("/:id", orderHandler.DeleteOrderHandler)
+		orderRoutes.PATCH("/:id", middlewares.ValidationMiddleware(&order.UpdateOrderDTO{}), orderHandler.UpdateOrderHandler)
+		orderRoutes.DELETE("/:id", orderHandler.DeleteOrderHandler)
 	}
 
 	r.GET("/ping", func(c *gin.Context) {

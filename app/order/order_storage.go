@@ -102,6 +102,7 @@ func (storage *OrderStorageImpl) CreateOrderItem(orderItem OrderItemModel) (*Ord
 	}
 	return &orderItem, nil
 }
+
 func (storage *OrderStorageImpl) GetOrderItems(orderId uint) ([]OrderItemModel, error) {
 	var orderItems []OrderItemModel
 	result := storage.db.Find(&orderItems)
