@@ -16,6 +16,7 @@ type OrderEntity struct {
 	OrderStatus     string             `json:"orderStatus"`
 	CustomerName    string             `json:"customerName"`
 	CustomerPhoneNo string             `json:"customerPhoneNo"`
+	CustomerEmail   string             `json:"customerEmail"`
 	BillingAddress  string             `json:"billingAddress"`
 	ShippingAddress string             `json:"shippingAddress"`
 	ID              uint               `json:"id"`

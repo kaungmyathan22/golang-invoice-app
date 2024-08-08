@@ -34,6 +34,7 @@ type OrderModel struct {
 	OrderNo         string         `gorm:"column:order_no;not null;unique"`
 	OrderStatus     string         `gorm:"type:order_status;not null; default:'Pending'"`
 	CustomerName    string         `gorm:"column:customer_name;not null"`
+	CustomerEmail   string         `gorm:"column:customer_email;not null"`
 	CustomerPhoneNo string         `gorm:"column:customer_phoneNo;not null"`
 	BillingAddress  string         `gorm:"column:billing_address;not null"`
 	ShippingAddress string         `gorm:"column:shipping_address;not null"`

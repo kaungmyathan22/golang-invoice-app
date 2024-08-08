@@ -3,6 +3,7 @@ package order
 type CreateOrderDTO struct {
 	CustomerName    string                  `json:"customerName" binding:"required" valid:"required~customerName is required"`
 	CustomerPhoneNo string                  `json:"customerPhoneNo" binding:"required" valid:"required~customerPhoneNo is required"`
+	CustomerEmail   string                  `json:"customerEmail" binding:"required" valid:"required~customerEmail is required,email~Invalid email"`
 	BillingAddress  string                  `json:"billingAddress" binding:"required" valid:"required~billingAddress is required"`
 	ShippingAddress string                  `json:"shippingAddress" binding:"required" valid:"required~shippingAddress is required"`
 	OrderItems      []CreateOrderItemEntity `json:"orderItems" binding:"required"`
@@ -23,6 +24,7 @@ func (dto *CreateOrderItemEntity) ToModel() (*OrderItemModel, error) {
 func (dto *CreateOrderDTO) ToModel() *OrderModel {
 	return &OrderModel{
 		CustomerName:    dto.CustomerName,
+		CustomerEmail:   dto.CustomerEmail,
 		CustomerPhoneNo: dto.CustomerPhoneNo,
 		BillingAddress:  dto.BillingAddress,
 		ShippingAddress: dto.ShippingAddress,
