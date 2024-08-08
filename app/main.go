@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kaungmyathan22/golang-invoice-app/app/category"
 	"github.com/kaungmyathan22/golang-invoice-app/app/common"
+	invoice "github.com/kaungmyathan22/golang-invoice-app/app/invoices"
 	"github.com/kaungmyathan22/golang-invoice-app/app/middlewares"
 	"github.com/kaungmyathan22/golang-invoice-app/app/order"
 	"github.com/kaungmyathan22/golang-invoice-app/app/product"
@@ -139,6 +140,13 @@ func main() {
 		orderRoutes.GET("/:id", orderHandler.GetOrderHandler)
 		orderRoutes.PATCH("/:id", middlewares.ValidationMiddleware(&order.UpdateOrderDTO{}), orderHandler.UpdateOrderHandler)
 		orderRoutes.DELETE("/:id", orderHandler.DeleteOrderHandler)
+	}
+	/** Invoice  */
+	invoiceHandler := invoice.NewInvoiceHandler(orderStorage)
+	invoiceRoutes := v1Route.Group("/invoices")
+	invoiceRoutes.Use(middlewares.AuthMiddleware(userStorage))
+	{
+		invoiceRoutes.POST("/:orderId/send", invoiceHandler.SendInvoicesHandler)
 	}
 
 	r.GET("/ping", func(c *gin.Context) {

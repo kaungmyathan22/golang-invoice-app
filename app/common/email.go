@@ -10,6 +10,7 @@ import (
 )
 
 var FORGOT_PASSWORD_EMAIL_TEMPLATE = "forgot-password"
+var INVOICE_EMAIL_TEMPLATE = "invoice"
 
 type ForgotPasswordData struct {
 	Name       string
