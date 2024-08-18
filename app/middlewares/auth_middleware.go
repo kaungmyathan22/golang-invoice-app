@@ -15,15 +15,26 @@ import (
 
 func AuthMiddleware(userStorage user.UserStorage) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		var tokenString string
+
+		// Check for Authorization header
 		authHeader := ctx.GetHeader("Authorization")
-		log.Println(authHeader)
-		if authHeader == "" {
-			ctx.JSON(http.StatusUnauthorized, common.GetEnvelope(http.StatusUnauthorized, "Authorization header is missing"))
-			ctx.Abort()
-			return
+		if authHeader != "" {
+			tokenString = strings.TrimSpace(strings.Replace(authHeader, "Bearer", "", 1))
 		}
 
-		tokenString := strings.TrimSpace(strings.Replace(authHeader, "Bearer", "", 1))
+		// If Authorization header is missing or empty, check for token in cookies
+		if tokenString == "" {
+			cookieToken, err := ctx.Cookie("jwt")
+			fmt.Println(cookieToken)
+			if err != nil {
+				ctx.JSON(http.StatusUnauthorized, common.GetEnvelope(http.StatusUnauthorized, "Authorization token is missing"))
+				ctx.Abort()
+				return
+			}
+			tokenString = cookieToken
+		}
+
 		if tokenString == "" {
 			ctx.JSON(http.StatusUnauthorized, common.GetEnvelope(http.StatusUnauthorized, "Authorization token is missing"))
 			ctx.Abort()
@@ -31,7 +42,6 @@ func AuthMiddleware(userStorage user.UserStorage) gin.HandlerFunc {
 		}
 
 		claims, err := lib.VerifyToken(tokenString)
-
 		if err != nil {
 			log.Println(err.Error())
 			ctx.JSON(http.StatusUnauthorized, common.GetEnvelope(http.StatusUnauthorized, "Invalid token"))
@@ -50,6 +60,7 @@ func AuthMiddleware(userStorage user.UserStorage) gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+
 		fmt.Println("Going next....")
 		ctx.Set("user", user_model)
 		ctx.Next()
