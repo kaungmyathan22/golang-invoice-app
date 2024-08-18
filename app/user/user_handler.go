@@ -80,6 +80,7 @@ func (handler *UserHandler) LoginHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, common.GetInternalServerErrorResponse("Something went wrong."))
 		return
 	}
+	ctx.SetCookie("Authentication", token, 3600*24, "/", "localhost", false, true)
 	ctx.JSON(200, common.GetSuccessResponse(UserLoginResponse{User: *UserEntityFromUserModel(user), Token: token}))
 }
 
