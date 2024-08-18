@@ -1,0 +1,70 @@
+name: Service-CI
+on:
+    push:
+        branches:
+        - "main"
+        - "develop"
+        - "feature/**"
+        - "feat/**"
+        - "release/**"
+        - "releases/**"
+        paths-ignore:
+        - "migrations/**"
+env:
+    GO_VERSION: "1.21.5"
+    HELM_VERSION: "3.14.3"
+jobs:
+    unit-tests:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                go-version: ${{env.GO_VERSION}}
+            - name: Vet source code
+              run: |
+                go vet ./...
+            - name: Run unit tests
+              run: |
+                go test ./...
+    validate-helm:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+        - name: Setup Helm
+          uses: azure/setup-helm@v3
+          with:
+            version: ${{ env.HELM_VERSION }}
+        - name: Liny Helm Chart
+          run: |
+            helm lint ./app
+    static-analysis:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                go-version: ${{env.GO_VERSION}}
+            - name: Install linter
+              run: |
+                curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest
+            - name: Run linter
+              run: |
+                ./bin/golangci-lint run
+    containerize:
+        runs-on: ubuntu-latest
+        needs: [unit-tests,static-analysis,validate-helm]
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+            - name: Build the image
+              uses: docker/build-push-action@v5
+              with:
+                context: .
+                file: ./Dockerfile
+                push: false
