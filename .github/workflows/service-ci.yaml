@@ -40,7 +40,7 @@ jobs:
             version: ${{ env.HELM_VERSION }}
         - name: Liny Helm Chart
           run: |
-            helm lint ./app
+            helm lint ./k8s
     static-analysis:
         runs-on: ubuntu-latest
         steps:
