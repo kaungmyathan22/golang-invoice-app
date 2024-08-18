@@ -72,12 +72,30 @@ func main() {
 		panic(err)
 	}
 	log.Println("successfully connected to database.")
-	db.AutoMigrate(&user.UserModel{})
-	db.AutoMigrate(&user.PasswordResetTokenModel{})
-	db.AutoMigrate(&category.CategoryModel{})
-	db.AutoMigrate(&product.ProductModel{})
-	db.AutoMigrate(&order.OrderModel{})
-	db.AutoMigrate(&order.OrderItemModel{})
+	err = db.AutoMigrate(&user.UserModel{})
+	if err != nil {
+		panic(err)
+	}
+	err = db.AutoMigrate(&user.PasswordResetTokenModel{})
+	if err != nil {
+		panic(err)
+	}
+	err = db.AutoMigrate(&category.CategoryModel{})
+	if err != nil {
+		panic(err)
+	}
+	err = db.AutoMigrate(&product.ProductModel{})
+	if err != nil {
+		panic(err)
+	}
+	err = db.AutoMigrate(&order.OrderModel{})
+	if err != nil {
+		panic(err)
+	}
+	err = db.AutoMigrate(&order.OrderItemModel{})
+	if err != nil {
+		panic(err)
+	}
 
 	r := gin.Default()
 	r.NoRoute(func(ctx *gin.Context) {
@@ -154,5 +172,8 @@ func main() {
 			"message": "pong!",
 		})
 	})
-	r.Run()
+	err = r.Run()
+	if err != nil {
+		panic(err)
+	}
 }
